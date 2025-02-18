@@ -1,18 +1,25 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "@models/UserModal"; 
 
 // Extend Express Request to include user info
 interface AuthRequest extends Request {
-  user?: { id: string };
+  user?: { id: string }; // Add user info to the request object
 }
 
 const authenticate = async (req: AuthRequest, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
-    const token = req.cookies.token;
+    // Get the token from the Authorization header (Bearer token)
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, message: "Unauthorized - No token provided" });
+    }
+
+    // Extract token from "Bearer <token>" format
+    const token = authHeader.split(" ")[1]; // authHeader = "Bearer <token>"
 
     if (!token) {
-      return res.status(401).json({ success: false, message: "Unauthorized - No token provided" });
+      return res.status(401).json({ success: false, message: "Unauthorized - Invalid token format" });
     }
 
     // Verify Access Token

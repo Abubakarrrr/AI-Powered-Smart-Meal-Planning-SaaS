@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User, { IUser } from "@models/UserModal";
-import generateTokenAndSetCookie from "@utils/generateTokenAndSetCookie";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "@utils/generateToken";
 import Mongoose from "mongoose";
 
 export const signup = async (req: Request, res: Response) => {
@@ -38,10 +41,21 @@ export const signup = async (req: Request, res: Response) => {
     await newUser.save();
 
     // Generate Access and Refresh Tokens & Set HTTP-only Cookie
-    const accessToken = generateTokenAndSetCookie(
-      res,
+    const accessToken = generateAccessToken(
       newUser._id as Mongoose.Types.ObjectId
     );
+    const refreshToken = generateRefreshToken(
+      newUser._id as Mongoose.Types.ObjectId
+    );
+    newUser.refreshToken = refreshToken;
+    await newUser.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Prevents JavaScript access (protects from XSS attacks)
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      sameSite: "strict", // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
+    });
 
     res.status(201).json({
       success: true,
@@ -83,21 +97,79 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const accessToken = generateTokenAndSetCookie(
-      res,
+    const accessToken = generateAccessToken(
       user._id as Mongoose.Types.ObjectId
     );
+    const refreshToken = generateRefreshToken(
+      user._id as Mongoose.Types.ObjectId
+    );
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Prevents JavaScript access (protects from XSS attacks)
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      sameSite: "strict", // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
+    });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
       accessToken,
-      user: { name: user.name, email: user.email },
+      user: {userId: user._id, name: user.name, email: user.email },
     });
     return;
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+    return;
+  }
+};
+
+interface LogoutRequest extends Request {
+  body: {
+    userId: string; // User ID sent from the frontend
+  };
+}
+
+export const logout = async (req: LogoutRequest, res: Response) => {
+  try {
+    const { userId } = req.body; // Extract userId from request body
+
+    if (!userId) {
+      res.status(400).json({ success: false, message: "User ID is required" });
+      return;
+    }
+
+    // Step 1: Remove Refresh Token from Cookies
+    res.cookie("refreshToken", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use in production environment only
+      sameSite: "strict",
+      maxAge: 0, // Expire the cookie immediately
+    });
+
+    // Step 2: Remove Refresh Token from the Database for the provided userId
+    await User.updateOne(
+      { _id: userId },
+      { $unset: { refreshToken: "" } } // Unset the refreshToken field
+    );
+
+    // Optionally: If you're storing other session data, you can clear it here
+
+    // Step 3: Send Success Response
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+    return;
+  } catch (error) {
+    console.error("Error during logout:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during logout",
+    });
     return;
   }
 };
