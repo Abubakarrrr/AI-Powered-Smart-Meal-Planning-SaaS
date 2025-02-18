@@ -4,21 +4,25 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: "User" | "Nutritionist" | "Admin";
+  role: "user" | "nutritionist" | "admin";
   avatar?: string;
-  subscriptions?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
+  refreshToken?: string;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true }, 
-    role: { type: String, enum: ["User", "Nutritionist", "Admin"], default: "User" },
-    avatar: { type: String },
-    subscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }],
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ["user", "nutritionist", "admin"],
+      default: "user",
+    },
+    avatar: { type: String, default: null },
+    refreshToken: { type: String }
   },
   { timestamps: true }
 );
