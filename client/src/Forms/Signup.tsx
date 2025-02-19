@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuthStore } from "@store/authStore";
 
 // Zod validation schema
 const signupSchema = z.object({
@@ -31,8 +31,18 @@ const Signup: React.FC = () => {
     setRole(event.target.value as "user" | "nutritionist");
   };
 
-  const handleFormSubmit = (data: SignupFormData) => {
+  const { signup, isLoading } = useAuthStore();
+
+  const handleFormSubmit = async(data: SignupFormData) => {
     console.log("Form submitted with data:", data);
+    const { username, email, password, role } = data;
+    try {
+      await signup(username, email, password, role);
+      alert("Signup successful!");
+    } catch (err) {
+      console.error(err);
+    }
+
     // For example, sending data to an API
     // fetch("/api/signup", {
     //   method: "POST",
@@ -82,7 +92,9 @@ const Signup: React.FC = () => {
             {...register("email")}
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
         </div>
 
         {/* Password Field */}
@@ -122,7 +134,9 @@ const Signup: React.FC = () => {
             <option value="user">User</option>
             <option value="nutritionist">Nutritionist</option>
           </select>
-          {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+          {errors.role && (
+            <p className="text-red-500 text-sm">{errors.role.message}</p>
+          )}
         </div>
 
         {/* Submit Button */}
