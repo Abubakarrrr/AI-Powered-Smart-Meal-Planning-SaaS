@@ -1,43 +1,48 @@
-import { Request, Response, NextFunction } from "express";
+import { ApiError } from "@utils/apiError";
+import { asyncHandler } from "@utils/aysncHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import User, { IUser } from "@models/UserModal";
+import { Request, Response, NextFunction } from "express";
 
-// Extend Express Request to include user info
-interface AuthRequest extends Request {
-  user?: { id: string }; // Add user info to the request object
+
+interface DecodedToken extends JwtPayload {
+  _id: string;
+}
+interface RequestWithUser extends Request {
+  user?: IUser;
 }
 
-const authenticate = async (req: AuthRequest, res: Response, next: NextFunction): Promise<Response | void> => {
-  try {
-    // Get the token from the Authorization header (Bearer token)
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ success: false, message: "Unauthorized - No token provided" });
+export const verifyJWT = asyncHandler(
+  async (req: RequestWithUser, _: Response, next: NextFunction) => {
+    try {
+      const token =
+        req.cookies?.accessToken ||
+        req.header("Authorization")?.replace("Bearer ", "");
+
+      if (!token) {
+        throw new ApiError(401, "Unauthorized request");
+      }
+
+      const decodedToken = jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET as string
+      ) as DecodedToken;
+
+      const user = await User.findById(decodedToken._id).select(
+        "-password -refreshToken"
+      );
+
+      if (!user) {
+        throw new ApiError(401, "Invalid Access Token");
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      // Ensure error is an instance of Error before accessing `.message`
+      const errorMessage =
+        error instanceof Error ? error.message : "Invalid access token";
+      throw new ApiError(401, errorMessage);
     }
-
-    // Extract token from "Bearer <token>" format
-    const token = authHeader.split(" ")[1]; // authHeader = "Bearer <token>"
-
-    if (!token) {
-      return res.status(401).json({ success: false, message: "Unauthorized - Invalid token format" });
-    }
-
-    // Verify Access Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
-
-    if (!decoded || !decoded.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized - Invalid token" });
-    }
-
-    // Attach user to request object (optional: fetch user from DB)
-    req.user = { id: decoded.userId };
-
-    next(); // Proceed to the next middleware/controller
-
-  } catch (error) {
-    console.error("Authentication Error:", error);
-    return res.status(401).json({ success: false, message: "Unauthorized - Token verification failed" });
   }
-};
-
-export default authenticate;
+);
