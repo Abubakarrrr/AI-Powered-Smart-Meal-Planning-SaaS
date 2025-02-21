@@ -10,6 +10,8 @@ router.post("/logout",verifyJWT,logout);
 router.post("/upload-avatar",uploadAvatar);
 router.post("/delete-avatar",deleteAvatar);
 router.post("/google",loginWithGoogle);
+// router.post("/send-otp", sendOTP);
+// router.post("/verify-otp", verifyOTP);
 
 
 export default router
