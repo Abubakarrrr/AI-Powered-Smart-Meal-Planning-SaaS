@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,10 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
 import useFetch from "@/hooks/useFetch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/authStore";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+const clientId = import.meta.env.VITE_OAUTH_CLIENT_ID;
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const signupSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
@@ -36,41 +39,67 @@ const Signup: React.FC = () => {
 
   const [role, setRole] = useState<"user" | "nutritionist">("user");
 
-  const {
-    data: apiData,
-    loading,
-    error,
-    triggerFetch,
-  } = useFetch<any>("http://localhost:3000/api/auth/signup");
+  const { loading, triggerFetch } = useFetch();
   const { setAuth } = useAuthStore.getState();
 
   const handleFormSubmit = async (data: SignupFormData) => {
-    await triggerFetch({
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then(() => {
+    try {
+      const apiData = await triggerFetch(
+        "http://localhost:3000/api/auth/v1/signup",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      setAuth(apiData.data.user);
+      navigate("/email-verify");
+      toast({
+        title: "Success",
+        description: "Verification email send to your email",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleGoogleLogin = async (response: any) => {
+    if ("credential" in response && response.credential) {
+      try {
+        const apiData = await fetch(`${BASE_URL}/api/auth/v1/google`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: response.credential,
+          }),
+        });
+        const data = await apiData.json();
+
+        console.log("User data:", data.data.user);
         toast({
           variant: "default",
           title: "Success",
-          description: "User has been created",
+          description: "Login successful",
         });
-        setAuth(apiData.user);
+        setAuth(data.data.user);
         navigate("/");
-      })
-      .catch((error) => {
-        console.log(error);
+      } catch (error) {
+        console.error("Login failed:", error);
         toast({
           variant: "default",
           title: "Error",
-          description: "Error while creating user",
+          description: "Google login failed",
         });
-      });
+      }
+    } else {
+      console.log("not running");
+    }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
@@ -133,18 +162,28 @@ const Signup: React.FC = () => {
             </div>
 
             {/* Google Login Button */}
-            <Button
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <FcGoogle className="text-xl" />
-              Login with Google
-            </Button>
+            {/* Google Login Button */}
+            <GoogleOAuthProvider clientId={clientId}>
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => {
+                  console.error("Google login failed");
+                  toast({
+                    variant: "default",
+                    title: "Error",
+                    description: "Google login failed",
+                  });
+                }}
+              />
+            </GoogleOAuthProvider>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <p className="text-sm text-center">
-            Already have an account? <Link to="/login">Login here</Link>
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Login here
+            </Link>
           </p>
         </CardFooter>
       </Card>

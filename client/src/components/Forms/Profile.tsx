@@ -26,13 +26,6 @@ const Profile = () => {
     return nameWithoutExtension;
   };
 
-  //   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  //   const handleChooseFile = () => {
-  //     fileInputRef.current?.click();
-  //   };
-
-  // Upload image on "Edit Profile" click
-
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -66,7 +59,7 @@ const Profile = () => {
 
       if (uploadedImage.secure_url) {
         // Call backend API to store Cloudinary URL in the user model
-        const response = await fetch(`${BASE_URL}/api/auth/upload-avatar`, {
+        const response = await fetch(`${BASE_URL}/api/auth/v1/upload-avatar`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -113,7 +106,7 @@ const Profile = () => {
       return;
     }
     try {
-      const res = await fetch(`${BASE_URL}/api/auth/delete-avatar`, {
+      const res = await fetch(`${BASE_URL}/api/auth/v1/delete-avatar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?._id, publicId }),
@@ -128,6 +121,7 @@ const Profile = () => {
         toast({ title: "Error", description: data.error });
       }
     } catch (error) {
+      console.log(error)
       toast({ title: "Error", description: "Failed to remove image" });
     }
   };

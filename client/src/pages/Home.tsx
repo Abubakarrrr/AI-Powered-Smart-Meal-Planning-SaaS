@@ -1,8 +1,12 @@
-import React from 'react'
+import Footer from "@/components/shared/Footer"
+import Navbar from "@/components/shared/Navbar"
 
 const Home = () => {
   return (
-    <div>Home</div>
+    <div>
+      <Navbar/>
+      <Footer/>
+    </div>
   )
 }
 

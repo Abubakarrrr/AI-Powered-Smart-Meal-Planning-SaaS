@@ -1,13 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
-import connectDB from "@config/db";
+import connectDB from "db/db";
 import cors from "cors";
 import cookieParser from "cookie-parser"
-import authRoute from "@routes/authRoutes";
+import authRoute from "@routes/api/auth/v1/auth";
+import config from "@config/config";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT =config.PORT;
 connectDB();
 
 app.use(
@@ -19,6 +20,6 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/auth", authRoute);
+app.use("/api/auth/v1", authRoute);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

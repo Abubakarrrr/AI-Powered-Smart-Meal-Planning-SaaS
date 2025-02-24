@@ -1,7 +1,7 @@
 import { ApiError } from "@utils/apiError";
 import { asyncHandler } from "@utils/aysncHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User, { IUser } from "@models/UserModal";
+import User, { IUser } from "@models/User";
 import { Request, Response, NextFunction } from "express";
 
 
@@ -18,11 +18,10 @@ export const verifyJWT = asyncHandler(
       const token =
         req.cookies?.accessToken ||
         req.header("Authorization")?.replace("Bearer ", "");
-
+       console.log(token);
       if (!token) {
         throw new ApiError(401, "Unauthorized request");
       }
-
       const decodedToken = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET as string

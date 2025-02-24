@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import jwt from "jsonwebtoken";
+import config from "@config/config";
+import Preferences from "./Preferences";
 
 export interface IUser extends Document {
   name: string;
@@ -11,8 +13,10 @@ export interface IUser extends Document {
   updatedAt: Date;
   refreshToken?: string;
   isVerified: Boolean;
-  otp:string,
-  otpExpiresAt:Date
+  otp: string | undefined;
+  otpExpiresAt: Date | undefined;
+  resetPasswordToken: string | undefined;
+  resetPasswordExpiresAt: Date | undefined;
   generateAccessToken(): string;
   generateRefreshToken(): string;
 }
@@ -30,8 +34,14 @@ const UserSchema: Schema = new Schema<IUser>(
     avatar: { type: String, default: null },
     refreshToken: { type: String },
     isVerified: { type: Boolean, default: false },
-    otp: { type: String },
-    otpExpiresAt: { type: Date },
+    otp: { type: String, default: undefined },
+    otpExpiresAt: { type: Date, default: undefined },
+    resetPasswordToken: { type: String, default: undefined },
+    resetPasswordExpiresAt: { type: Date, default: undefined },
+    Preferences: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserPreferences", // Reference to UserPreferences Schema
+    },
   },
   { timestamps: true }
 );
@@ -39,7 +49,7 @@ const UserSchema: Schema = new Schema<IUser>(
 UserSchema.methods.generateAccessToken = function () {
   const accessToken = jwt.sign(
     { _id: this._id },
-    process.env.ACCESS_TOKEN_SECRET as string,
+    config.ACCESS_TOKEN_SECRET as string,
     { expiresIn: "15m" }
   );
   return accessToken;
@@ -47,8 +57,8 @@ UserSchema.methods.generateAccessToken = function () {
 UserSchema.methods.generateRefreshToken = function () {
   const refreshToken = jwt.sign(
     { _id: this._id },
-    process.env.REFRESH_TOKEN_SECRET as string,
-    { expiresIn: "30d" }
+    config.REFRESH_TOKEN_SECRET as string,
+    { expiresIn: "7d" }
   );
   return refreshToken;
 };

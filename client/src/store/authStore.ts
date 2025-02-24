@@ -4,8 +4,10 @@ import { persist } from "zustand/middleware";
 interface User {
   _id: string;
   email: string;
-  name?: string;
-  avatar?: string
+  name: string;
+  avatar: string | undefined;
+  isVerified: boolean;
+  role:"user" | "nutritionist" | "admin"
 }
 
 interface AuthState {

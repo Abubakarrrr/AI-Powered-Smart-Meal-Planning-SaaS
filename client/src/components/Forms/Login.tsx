@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuthStore } from "@/store/authStore";
@@ -10,9 +10,8 @@ import { Link, useNavigate } from "react-router-dom";
 import useFetch from "@/hooks/useFetch";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
-// const clientId = import.meta.env.OAUTH_CLIENT_ID;
-
+const clientId = import.meta.env.VITE_OAUTH_CLIENT_ID;
+const BASE_URL = import.meta.env.VITE_API_URL;
 // Zod validation schema for login form
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -33,59 +32,45 @@ const Login: React.FC = () => {
   });
   const { setAuth } = useAuthStore.getState();
 
-  const {
-    data: apiData,
-    loading,
-    error,
-    triggerFetch,
-  } = useFetch<any>("http://localhost:3000/api/auth/login");
+  const { loading, error, triggerFetch } = useFetch();
 
   const handleLoginSubmit = async (data: LoginFormData) => {
-    console.log(data);
-    await triggerFetch({
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then(() => {
-        toast({
-          variant: "default",
-          title: "Success",
-          description: "Login successfull",
-        });
-        setAuth(apiData?.user);
-        navigate("/");
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          variant: "default",
-          title: "Error",
-          description: "Error while logging in",
-        });
-      });
+    const apiData = await triggerFetch(
+      "http://localhost:3000/api/auth/v1/login",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    setAuth(apiData.data.user);
+    navigate("/");
   };
 
   const handleGoogleLogin = async (response: any) => {
     if ("credential" in response && response.credential) {
       try {
-        // Send the token to your server to authenticate the user
-        const data = await axios.post(
-          "http://localhost:3000/api/auth/google",
-          {
+        const apiData = await fetch(`${BASE_URL}/api/auth/v1/google`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             token: response.credential,
-          }
-        );
-        console.log("User data:", data);
-        // Handle user session or redirection after successful login
-        // setAuth(data?.user)
+          }),
+        });
+        const data = await apiData.json();
+
+        console.log("User data:", data.data.user);
         toast({
           variant: "default",
           title: "Success",
           description: "Login successful",
         });
+        setAuth(data.data.user)
         navigate("/");
       } catch (error) {
         console.error("Login failed:", error);
@@ -95,9 +80,8 @@ const Login: React.FC = () => {
           description: "Google login failed",
         });
       }
-    }
-    else{
-      console.log("not running")
+    } else {
+      console.log("not running");
     }
   };
 
@@ -150,6 +134,15 @@ const Login: React.FC = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
+
+            <p className="text-sm">
+              <Link
+                to="/forgot-password"
+                className="text-blue-600 hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </p>
           </form>
 
           {/* OR Separator */}
@@ -160,7 +153,7 @@ const Login: React.FC = () => {
           </div>
 
           {/* Google Login Button */}
-          <GoogleOAuthProvider clientId="959770107004-m7b9du2acvifvhlc8mjh74c856hh2apo.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId={clientId}>
             <GoogleLogin
               onSuccess={handleGoogleLogin}
               onError={() => {
