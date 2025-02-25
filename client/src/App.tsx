@@ -13,6 +13,9 @@ import { Toaster } from "@/components/ui/toaster";
 import RedirectAuthenticatedUser from "@/utils/RedirectAuthenticatedUser";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PageNotFound from "@/components/shared/PageNotFound";
+import AdminProtectedRoute from "./utils/AdminProtectedRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import UserManagement from "@/components/dashboard/admin/users/UserManagement"
 
 function App() {
   return (
@@ -32,9 +35,9 @@ function App() {
           <Route
             path="/login"
             element={
-              <RedirectAuthenticatedUser>
+              // <RedirectAuthenticatedUser>
                 <Login />
-              </RedirectAuthenticatedUser>
+              // </RedirectAuthenticatedUser>
             }
           />
           <Route
@@ -56,6 +59,27 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="*" element={<PageNotFound />} />
+          {/* Admin protected routes  */}
+        
+          <Route
+            path="/admin"
+            element={
+              // <AdminProtectedRoute>
+                <AdminLayout />
+              // </AdminProtectedRoute>
+            }
+          >
+            <Route
+              path="users"
+              element={
+                // <AdminProtectedRoute>
+                  <UserManagement />
+                // </AdminProtectedRoute>
+              }
+            />
+          </Route>
+          
+
         </Routes>
       </div>
   </>

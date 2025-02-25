@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
-import User, { IUser } from "@models/User";
+import User, { IUser, UserStatus } from "@models/User";
 import Mongoose from "mongoose";
 import { ApiError } from "@utils/apiError";
 import { ApiResponse } from "@utils/apiResponse";
@@ -9,8 +9,12 @@ import { asyncHandler } from "@utils/aysncHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "@config/config";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
-import { sendPasswordResetEmail, sendVerificationEmail } from "@utils/emailSender";
-import crypto from "crypto"
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from "@utils/emailSender";
+import crypto from "crypto";
+import generateAccessAndRefereshTokens from "@utils/generateAccessAndRefereshTokens";
 
 const CLIENT_ID = config.OAUTH_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
@@ -22,28 +26,6 @@ cloudinary.config({
 });
 
 // generateAccessAndRefereshTokens function
-const generateAccessAndRefereshTokens = async (
-  userId: Mongoose.Types.ObjectId
-) => {
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new ApiError(404, "User not found");
-    }
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
-
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    return { accessToken, refreshToken };
-  } catch (error) {
-    throw new ApiError(
-      500,
-      "Something went wrong while generating referesh and access token"
-    );
-  }
-};
 
 // signup controller
 export const signup = asyncHandler(
@@ -52,13 +34,20 @@ export const signup = asyncHandler(
 
     // Validate required fields
     if (!name || !email || !password || !role) {
-      throw new ApiError(400, "All fields are required");
+      // throw new ApiError(400, "All fields are required");
+      res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw new ApiError(400, "User already registered");
+      // throw new ApiError(400, "User already registered");
+      res
+        .status(400)
+        .json({ success: false, message: "User already registered" });
+      return;
     }
 
     // Hash password before saving
@@ -67,7 +56,7 @@ export const signup = asyncHandler(
     // Create new user
     const newUser = new User({
       name,
-    email,
+      email,
       password: hashedPassword,
       role,
       otp,
@@ -126,7 +115,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
       return;
     }
 
-    user.isVerified = true;
+    user.status = UserStatus.VERIFIED;
     user.otp = undefined;
     user.otpExpiresAt = undefined;
 
@@ -143,7 +132,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     );
   } catch (error) {
     console.log("error in verifyEmail", error);
-    // res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -153,19 +142,31 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   // Validate input
   if (!email || !password) {
-    throw new ApiError(400, "Email and password are required");
+    // throw new ApiError(400, "Email and password are required");
+    res
+      .status(400)
+      .json({ success: false, message: "Email and password are required" });
   }
 
   // Find user by email
   const user = await User.findOne({ email });
   if (!user) {
-    throw new ApiError(401, "Invalid credentials");
+    // throw new ApiError(401, "Invalid credentials");
+    res.status(400).json({ success: false, message: "Invalid credentials" });
+    return;
+  }
+  if (user.status == UserStatus.BLOCKED) {
+    res
+      .status(400)
+      .json({ success: false, message: "Your account is blocked, contact support" });
+    return;
   }
 
   // Compare password
   const isMatch = await bcrypt.compare(password, user.password!);
   if (!isMatch) {
-    throw new ApiError(401, "Invalid credentials");
+    // throw new ApiError(401, "Invalid credentials");
+    res.status(400).json({ success: false, message: "Invalid credentials" });
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
@@ -424,14 +425,15 @@ export const loginWithGoogle = asyncHandler(
       }
     } catch (error) {
       console.error("Error during Google authentication:", error);
-      res.status(400).json({ error: "Authentication failed" });
+      res
+        .status(400)
+        .json({ sucess: "false", message: "Authentication failed" });
     }
   }
 );
 
-
 // forgot password controller
-export const forgotPassword = async (req:Request, res:Response) => {
+export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
 
   try {
@@ -442,14 +444,14 @@ export const forgotPassword = async (req:Request, res:Response) => {
     const userFromDB = await User.findOne({ email: email });
 
     if (!userFromDB) {
-       res
-      .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-        return;
+      res.status(400).json({ success: false, message: "Invalid credentials" });
+      return;
     }
 
     const passwordResetToken = crypto.randomBytes(20).toString("hex");
-    const passwordResetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000) // 1 hour
+    const passwordResetTokenExpiresAt = new Date(
+      Date.now() + 1 * 60 * 60 * 1000
+    ); // 1 hour
 
     userFromDB.resetPasswordToken = passwordResetToken;
     userFromDB.resetPasswordExpiresAt = passwordResetTokenExpiresAt;
@@ -461,11 +463,10 @@ export const forgotPassword = async (req:Request, res:Response) => {
     );
 
     res.status(200).json({
-    success: true,
+      success: true,
       message: "Password reset link email sent successfully",
     });
     return;
-
   } catch (error) {
     console.log("error in forgotPassword");
     res.status(400).json({ success: false, message: (error as Error).message });
@@ -473,7 +474,7 @@ export const forgotPassword = async (req:Request, res:Response) => {
 };
 
 // reset password controller
-export const resetPassword = async (req:Request, res:Response) => {
+export const resetPassword = async (req: Request, res: Response) => {
   const { token, password, confirmPassword } = req.body;
   try {
     const userFromDB = await User.findOne({
@@ -481,10 +482,10 @@ export const resetPassword = async (req:Request, res:Response) => {
       resetPasswordExpiresAt: { $gt: Date.now() },
     });
     if (!userFromDB) {
-       res
+      res
         .status(400)
         .json({ success: false, message: "Invalid or expired token" });
-        return;
+      return;
     }
 
     if (password === confirmPassword) {

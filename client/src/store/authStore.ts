@@ -6,7 +6,6 @@ interface User {
   email: string;
   name: string;
   avatar: string | undefined;
-  isVerified: boolean;
   role:"user" | "nutritionist" | "admin"
 }
 

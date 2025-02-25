@@ -35,19 +35,38 @@ const Login: React.FC = () => {
   const { loading, error, triggerFetch } = useFetch();
 
   const handleLoginSubmit = async (data: LoginFormData) => {
-    const apiData = await triggerFetch(
-      "http://localhost:3000/api/auth/v1/login",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+    try {
+      const apiData = await triggerFetch(
+        "http://localhost:3000/api/auth/v1/login",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      if (!apiData) {
+        toast({
+          title: "Failure",
+          description: error,
+        });
+      } else {
+        setAuth(apiData.user);
+        navigate("/");
+        toast({
+          title: "Success",
+          description: "Login successfully",
+        });
       }
-    );
-    setAuth(apiData.data.user);
-    navigate("/");
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Failure",
+        description: "Something went wrong",
+      });
+    }
   };
 
   const handleGoogleLogin = async (response: any) => {
@@ -70,7 +89,7 @@ const Login: React.FC = () => {
           title: "Success",
           description: "Login successful",
         });
-        setAuth(data.data.user)
+        setAuth(data.data.user);
         navigate("/");
       } catch (error) {
         console.error("Login failed:", error);

@@ -1,5 +1,5 @@
-export const emailTemplate = (otp:string) => {
-	return `<!DOCTYPE html>
+export const emailTemplate = (otp: string) => {
+  return `<!DOCTYPE html>
 	<html>
 	
 	<head>
@@ -84,7 +84,7 @@ export const emailTemplate = (otp:string) => {
 };
 
 export const PasswordResetTemplate = (resetURL: string) => {
-	return ` 
+  return ` 
 	<!DOCTYPE html> 
 	<html lang="en"> 
 	<head>   
@@ -111,5 +111,92 @@ export const PasswordResetTemplate = (resetURL: string) => {
 	  </div> 
 	</body> 
 	</html>`;
-  };
-  
+};
+
+export const generateUserCreationEmail = (
+  username: string,
+  email: string,
+  password: string,
+  role: string
+) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background: #0073e6;
+                color: white;
+                text-align: center;
+                padding: 15px;
+                font-size: 20px;
+                font-weight: bold;
+                border-radius: 8px 8px 0 0;
+            }
+            .content {
+                padding: 20px;
+                font-size: 16px;
+                color: #333;
+            }
+            .footer {
+                margin-top: 20px;
+                text-align: center;
+                font-size: 14px;
+                color: #777;
+            }
+            .details {
+                background: #f9f9f9;
+                padding: 15px;
+                border-radius: 5px;
+                margin-top: 10px;
+            }
+            .details p {
+                margin: 5px 0;
+            }
+            .button {
+                display: inline-block;
+                padding: 10px 15px;
+                margin-top: 15px;
+                background: #0073e6;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">Welcome to Our Platform</div>
+            <div class="content">
+                <p>Dear <b>${username}</b>,</p>
+                <p>Your account has been successfully created. Below are your account details:</p>
+                <div class="details">
+                    <p><b>Email:</b> ${email}</p>
+                    <p><b>Password:</b> ${password}</p>
+                    <p><b>Role:</b> ${role}</p>
+                </div>
+                <p>You can now log in and start using our platform.</p>
+                <p><a href="http://localhost:5173/login" class="button">Login Now</a></p>
+            </div>
+            <div class="footer">
+                If you have any questions, feel free to contact our support team.
+            </div>
+        </div>
+    </body>
+    </html>`;
+};

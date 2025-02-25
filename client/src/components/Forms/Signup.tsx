@@ -14,7 +14,6 @@ import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 const clientId = import.meta.env.VITE_OAUTH_CLIENT_ID;
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-
 const signupSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   email: z.string().email("Please enter a valid email"),
@@ -39,7 +38,7 @@ const Signup: React.FC = () => {
 
   const [role, setRole] = useState<"user" | "nutritionist">("user");
 
-  const { loading, triggerFetch } = useFetch();
+  const { loading, error, triggerFetch } = useFetch();
   const { setAuth } = useAuthStore.getState();
 
   const handleFormSubmit = async (data: SignupFormData) => {
@@ -55,14 +54,25 @@ const Signup: React.FC = () => {
           body: JSON.stringify(data),
         }
       );
-      setAuth(apiData.data.user);
-      navigate("/email-verify");
-      toast({
-        title: "Success",
-        description: "Verification email send to your email",
-      });
+      if (!apiData) {
+        toast({
+          title: "Failure",
+          description: error,
+        });
+      } else {
+        setAuth(apiData?.user);
+        navigate("/email-verify");
+        toast({
+          title: "Success",
+          description: "Verification email send to your email",
+        });
+      }
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Failure",
+        description: "Something went wrong",
+      });
     }
   };
 

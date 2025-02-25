@@ -4,6 +4,7 @@ import connectDB from "db/db";
 import cors from "cors";
 import cookieParser from "cookie-parser"
 import authRoute from "@routes/api/auth/v1/auth";
+import adminRoute from "@routes/api/admin/v1/admin"
 import config from "@config/config";
 dotenv.config();
 
@@ -21,5 +22,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth/v1", authRoute);
+app.use("/api/admin/v1", adminRoute);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

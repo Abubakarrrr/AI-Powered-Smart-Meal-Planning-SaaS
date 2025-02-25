@@ -21,16 +21,14 @@ export default function EmailVerify() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(verificationCode);
     try {
       const res = await fetch(`${BASE_URL}/api/auth/v1/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: verificationCode }),
       });
-      const data = await res.json();
-      console.log(data);
-      setAuth(data.user);
+    const result = await res.json();
+      setAuth(result.data.user);
       toast({
         title: "Success",
         description: "Login successfully",

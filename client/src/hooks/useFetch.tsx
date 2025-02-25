@@ -9,12 +9,16 @@ const useFetch = () => {
     setError(null);
     try {
       const response = await fetch(url, requestOptions);
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      // }
       const result = await response.json();
+      if(!result.success){
+        setError(result.message)
+        return null;
+      }
       return result.data;
-    } catch (err) {
+  } catch (err) {
       setError((err as Error).message || "An error occurred");
       return null;
     } finally {

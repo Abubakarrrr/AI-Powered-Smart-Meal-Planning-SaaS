@@ -1,8 +1,9 @@
 import nodemailer from "nodemailer";
-import { emailTemplate,PasswordResetTemplate } from "./emailTemplate";
+import { emailTemplate,generateUserCreationEmail,PasswordResetTemplate } from "./emailTemplate";
 import { ApiError } from "./apiError";
 import config from "@config/config";
 
+// send verification email
 const emailSender = async (email: string, title: string, body: string) => {
   try {
     let transporter = nodemailer.createTransport({
@@ -62,6 +63,32 @@ export async function sendPasswordResetEmail(email: string, resetURL: string) {
       to: email,
       subject: "Reset your password",
       html: PasswordResetTemplate(resetURL),
+    };
+    let info = await transporter.sendMail(mailOptions);
+    console.log("Message sent: %s", info.messageId);
+    console.log("Email sent successfully", info.response);
+  } catch (error) {
+    console.error(`Error sending password reset email`, error);
+    throw new Error(`Error sending password reset email: ${error}`);
+  }
+}
+
+// user created by admin email
+export async function userCreationEmail(name:string,email: string, password: string,role:string) {
+  try {
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: config.MAIL_HOST,
+      auth: {
+        user: config.MAIL_USER,
+        pass: config.MAIL_PASS,
+      },
+    });
+    let mailOptions = {
+      from: "EatWise || Abubakar",
+      to: email,
+      subject: "Login to our website",
+      html: generateUserCreationEmail(name,email,password,role),
     };
     let info = await transporter.sendMail(mailOptions);
     console.log("Message sent: %s", info.messageId);
