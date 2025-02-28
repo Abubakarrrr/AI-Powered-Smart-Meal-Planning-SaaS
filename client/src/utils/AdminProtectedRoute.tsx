@@ -12,9 +12,9 @@ const AdminProtectedRoute = ({ children }:Props) => {
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
-  if (!user.isVerified) {
-    return <Navigate to="/email-verify" replace />;
-  }
+  // if (!user.status) {
+  //   return <Navigate to="/email-verify" replace />;
+  // }
   return children;
 };
 

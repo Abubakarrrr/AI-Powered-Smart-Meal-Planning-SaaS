@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document ,Types} from "mongoose";
 import jwt from "jsonwebtoken";
 import config from "@config/config";
 
@@ -6,9 +6,8 @@ export enum UserStatus {
   VERIFIED = "verified",
   UNVERIFIED = "unverified",
   BLOCKED = "blocked",
-  DELETED = "deleted"
+  DELETED = "deleted",
 }
-
 
 export interface IUser extends Document {
   name: string;
@@ -26,7 +25,8 @@ export interface IUser extends Document {
   status: UserStatus;
   generateAccessToken(): string;
   generateRefreshToken(): string;
-  UserPreferences: mongoose.Types.ObjectId; 
+  userProfileId?: mongoose.Types.ObjectId; 
+  meals: Types.ObjectId[];
 }
 
 const UserSchema: Schema = new Schema<IUser>(
@@ -45,10 +45,15 @@ const UserSchema: Schema = new Schema<IUser>(
     otpExpiresAt: { type: Date, default: undefined },
     resetPasswordToken: { type: String, default: undefined },
     resetPasswordExpiresAt: { type: Date, default: undefined },
-    status: { type: String, enum: Object.values(UserStatus), default: UserStatus.UNVERIFIED },
-    UserPreferences: {
+    status: {
+      type: String,
+      enum: Object.values(UserStatus),
+      default: UserStatus.UNVERIFIED,
+    },
+    meals: [{ type: Schema.Types.ObjectId, ref: "Meal" }], 
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "UserPreferences", // Reference to UserPreferences Schema
+      ref: "UserProfile",
     },
   },
   { timestamps: true }
@@ -56,7 +61,7 @@ const UserSchema: Schema = new Schema<IUser>(
 
 UserSchema.methods.generateAccessToken = function () {
   const accessToken = jwt.sign(
-    { _id: this._id },
+    { _id: this._id, role: this.role, name: this.name, email: this.email },
     config.ACCESS_TOKEN_SECRET as string,
     { expiresIn: "15m" }
   );
@@ -64,7 +69,7 @@ UserSchema.methods.generateAccessToken = function () {
 };
 UserSchema.methods.generateRefreshToken = function () {
   const refreshToken = jwt.sign(
-    { _id: this._id },
+    { _id: this._id, role: this.role, name: this.name, email: this.email },
     config.REFRESH_TOKEN_SECRET as string,
     { expiresIn: "7d" }
   );
