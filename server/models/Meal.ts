@@ -1,6 +1,14 @@
 import mongoose, { Schema, Document,Types } from "mongoose";
 
+
+export enum MealType {
+  Breakfast = "Breakfast",
+  Lunch = "Lunch",
+  Dinner = "Dinner",
+  Snacks = "Snacks",
+}
 export interface IMeal extends Document {
+  id?:Types.ObjectId
   title: string;
   description: string;
   ingredients: string[];
@@ -10,9 +18,10 @@ export interface IMeal extends Document {
   protein: number;
   carbs: number;
   fats: number;
+  mealType:MealType
   createdAt:Date;
   updatedAt:Date;
-  createdBy: Types.ObjectId; 
+  // createdBy: Types.ObjectId; 
 }
 
 const MealSchema: Schema = new Schema<IMeal>(
@@ -26,9 +35,11 @@ const MealSchema: Schema = new Schema<IMeal>(
     protein: { type: Number, required: true },
     carbs: { type: Number, required: true },
     fats: { type: Number, required: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    mealType:{type: String, enum: Object.values(MealType), required: true },
+    // createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
 
-export const Meal = mongoose.model<IMeal>("Meal", MealSchema);
+const Meal = mongoose.model<IMeal>("Meal", MealSchema);
+export default Meal

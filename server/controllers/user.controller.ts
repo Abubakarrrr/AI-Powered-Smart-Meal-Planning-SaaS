@@ -62,7 +62,7 @@ export const createUserProfile = asyncHandler(
       userProfileId: userProfile._id,
     });
 
-    return res.status(200).json(
+    res.status(200).json(
       new ApiResponse(
         200,
         {
@@ -89,10 +89,10 @@ export const getUserProfile = asyncHandler(
           .status(400)
           .json({ success: false, message: "User ID is required" });
       }
-      
+
       // Find the user and populate the userProfile data
       const user = await User.findById(userId).populate("userProfileId");
-      console.log(user) 
+      console.log(user);
       if (!user || !user.userProfileId) {
         return res
           .status(404)

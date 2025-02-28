@@ -15,6 +15,8 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const mealSchema = z.object({
 title: z.string().min(3, "Title must be at least 3 characters"),
@@ -76,8 +78,22 @@ export default function MealCreationPage() {
     setSteps(steps.filter((_, i) => i !== index));
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async(data: any) => {
     console.log("Meal Data:", { ...data, ingredients, steps });
+    const meal = {...data,ingredients,steps}
+     console.log(meal)
+    try {
+        const res = await fetch(`${BASE_URL}/api/meal/v1/create-meal`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({meal}),
+        });
+        const data = await res.json();
+        console.log(data)
+      } catch (error) {
+        console.log(error)
+      }
     alert("Meal Created Successfully!");
   };
 
