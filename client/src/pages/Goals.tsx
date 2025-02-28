@@ -110,7 +110,7 @@ export default function UserProfileForm() {
   // Handle form submission
   async function onSubmit(data: FormValues) {
     // Combine the form data with the exclusions
-    const completeData = {
+    const profileInfo = {
       ...data,
       foodExclusions: exclusions.join(", "),
     }
@@ -119,7 +119,7 @@ export default function UserProfileForm() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({completeData}),
+        body: JSON.stringify({profileInfo}),
       });
       const data = await res.json();
       console.log(data)

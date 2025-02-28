@@ -177,7 +177,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: true, // Use HTTPS in production
     sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
-    maxAge: 15 * 60 * 1000, //15 mins
+    maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
   });
 
   res.cookie("refreshToken", refreshToken, {
