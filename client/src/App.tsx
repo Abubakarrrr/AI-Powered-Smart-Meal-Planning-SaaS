@@ -18,6 +18,7 @@ import AdminLayout from "./components/layout/AdminLayout";
 import UserManagement from "@/components/dashboard/admin/users/UserManagement"
 import UserProfileForm from "./pages/Goals";
 import AdminProtectedRoute from "./utils/AdminProtectedRoute";
+import MealCreationPage from "./pages/MealCreation";
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/goals" element={<UserProfileForm />} />
+          <Route path="/create-meal" element={<MealCreationPage />} />
           <Route path="*" element={<PageNotFound />} />
           {/* Admin protected routes  */}
         
