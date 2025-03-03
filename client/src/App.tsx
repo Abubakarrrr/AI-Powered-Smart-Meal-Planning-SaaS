@@ -11,7 +11,7 @@ import {
 } from "@/components/Forms";
 import { Toaster } from "@/components/ui/toaster";
 import RedirectAuthenticatedUser from "@/utils/RedirectAuthenticatedUser";
-import ProtectedRoute from "./utils/ProtectedRoute";
+// import ProtectedRoute from "./utils/ProtectedRoute";
 import PageNotFound from "@/components/shared/PageNotFound";
 // import AdminProtectedRoute from "./utils/AdminProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -19,6 +19,7 @@ import UserManagement from "@/components/dashboard/admin/users/UserManagement"
 import UserProfileForm from "./pages/Goals";
 import AdminProtectedRoute from "./utils/AdminProtectedRoute";
 import MealCreationPage from "./pages/MealCreation";
+import MealPlanner from "./pages/MealPlanner";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/goals" element={<UserProfileForm />} />
           <Route path="/create-meal" element={<MealCreationPage />} />
+          <Route path="/planner/:date" element={<MealPlanner />} />
           <Route path="*" element={<PageNotFound />} />
           {/* Admin protected routes  */}
         

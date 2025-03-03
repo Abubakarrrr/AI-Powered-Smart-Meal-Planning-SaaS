@@ -64,6 +64,7 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
        res.status(404).json({ success:"false",message: "User not found" });
        return;
     }
+    
     const id = newMeal._id as mongoose.Types.ObjectId;
     user.meals.push(id);
     await user.save();
