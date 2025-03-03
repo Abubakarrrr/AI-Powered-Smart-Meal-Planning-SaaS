@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document ,Types} from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 import jwt from "jsonwebtoken";
 import config from "@config/config";
+import { IMeal } from "./Meal";
 
 export enum UserStatus {
   VERIFIED = "verified",
@@ -25,14 +26,15 @@ export interface IUser extends Document {
   status: UserStatus;
   generateAccessToken(): string;
   generateRefreshToken(): string;
-  userProfileId?: mongoose.Types.ObjectId; 
-  meals: Types.ObjectId[];
+  userProfileId?: Schema.Types.ObjectId;
+  meals: Schema.Types.ObjectId[] ;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    meals: [{ type: Schema.Types.ObjectId, ref: "Meal" }],
     password: { type: String },
     role: {
       type: String,
@@ -50,9 +52,8 @@ const UserSchema: Schema = new Schema<IUser>(
       enum: Object.values(UserStatus),
       default: UserStatus.UNVERIFIED,
     },
-    meals: [{ type: Schema.Types.ObjectId, ref: "Meal" }], 
     userProfileId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "UserProfile",
     },
   },

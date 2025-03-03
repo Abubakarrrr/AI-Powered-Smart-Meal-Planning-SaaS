@@ -175,14 +175,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: true, // Use HTTPS in production
+    secure: false, // Use HTTPS in production
     sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: true, // Use HTTPS in production
+    secure: false, // Use HTTPS in production
     sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });

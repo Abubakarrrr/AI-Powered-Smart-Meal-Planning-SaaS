@@ -8,7 +8,7 @@ export enum MealType {
   Snacks = "Snacks",
 }
 export interface IMeal extends Document {
-  id?:Types.ObjectId
+  id?:Schema.Types.ObjectId
   title: string;
   description: string;
   ingredients: string[];

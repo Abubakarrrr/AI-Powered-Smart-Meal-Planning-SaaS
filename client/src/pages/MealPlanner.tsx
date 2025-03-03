@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format , parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   CalendarIcon,
   ChevronLeft,
@@ -28,23 +28,30 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
+import { Schema } from "mongoose";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-// Define types for our data
-interface FoodItem {
-  id: number;
-  name: string;
-  calories: number;
-  quantity: number;
-  serving: string;
-  image: string;
+export enum MealType {
+  Breakfast = "Breakfast",
+  Lunch = "Lunch",
+  Dinner = "Dinner",
+  Snacks = "Snacks",
 }
 
 interface Meal {
-  id: number;
-  type: string;
+  _id?:Schema.Types.ObjectId
+  title: string;
+  description: string;
+  ingredients: string[];
+  steps: string[];
+  category: string; 
   calories: number;
-  items: FoodItem[];
+  protein: number;
+  carbs: number;
+  fats: number;
+  mealType:MealType
 }
+
 
 // Sample meal data
 const initialMeals: Meal[] = [
@@ -103,27 +110,49 @@ const initialMeals: Meal[] = [
 
 export default function MealPlanner() {
   const { date: urlDate } = useParams();
-  const [date, setDate] = useState<Date>(urlDate ? parseISO(urlDate) : new Date());
-  const [meals, setMeals] = useState<Meal[]>(initialMeals);
+  const [date, setDate] = useState<Date>(
+    urlDate ? parseISO(urlDate) : new Date()
+  );
+  const [meals, setMeals] = useState<Meal[]>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const formattedDate = format(date, "yyyy-MM-dd");
-    navigate(`/planner/${formattedDate}`,{replace:true});
+    navigate(`/planner/${formattedDate}`, { replace: true });
   }, [date]);
 
-  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const formattedDate = format(date, "yyyy-MM-dd");
+        const response = await fetch(`${BASE_URL}/api/meal/v1/get-datewise-user-meal/date=${formattedDate}`,{
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" }
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch meals");
+        }
+        const data = await response.json();
+        console.log(data.meals);
+        setMeals(data.meals);
+      } catch (error) {
+        console.error("Error fetching meals:", error);
+      }
+    };
+    fetchMeals();
+  }, [date]);
 
+  const totalCalories = meals?.reduce((sum, meal) => sum + meal.calories, 0);
 
   const handlePrevDay = () => {
     setDate((prevDate) => {
       const newDate = new Date(prevDate);
       newDate.setDate(newDate.getDate() - 1);
-      return newDate; 
+      return newDate;
     });
   };
-  
 
   const handleNextDay = () => {
     setDate((prevDate) => {
@@ -132,7 +161,6 @@ export default function MealPlanner() {
       return newDate;
     });
   };
-  
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
@@ -149,6 +177,8 @@ export default function MealPlanner() {
       date.getFullYear() === today.getFullYear()
     );
   };
+
+  // if(!meals) return <div>Loading...</div>
 
   return (
     <div className="container mx-auto p-4 max-w-3xl">
@@ -200,7 +230,7 @@ export default function MealPlanner() {
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <div className="flex items-center">
               <h2 className="text-xl font-semibold">Meals</h2>
-              {totalCalories > 0 && (
+              {totalCalories && totalCalories > 0 && (
                 <div className="flex items-center ml-4 text-amber-600">
                   <svg
                     viewBox="0 0 24 24"
@@ -223,11 +253,11 @@ export default function MealPlanner() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            {meals.map((meal) => (
-              <div key={meal.id} className="border-t p-4 bg-muted/30">
+            {meals?.map((meal) => (
+              <div key={meal.title} className="border-t p-4 bg-muted/30">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
-                    <h3 className="text-lg font-medium">{meal.type}</h3>
+                    <h3 className="text-lg font-medium">{meal.mealType}</h3>
                     {meal.calories > 0 && (
                       <div className="flex items-center ml-2 text-sm">
                         <div className="h-4 w-4 rounded-full bg-blue-500 mr-1"></div>
@@ -240,24 +270,24 @@ export default function MealPlanner() {
                   </Button>
                 </div>
 
-                {meal.items.map((item) => (
-                  <div key={item.id} className="flex items-center py-2">
+                {meal?.ingredients.map((item) => (
+                  <div key={item} className="flex items-center py-2">
                     <input
                       type="checkbox"
                       className="h-5 w-5 rounded border-gray-300"
                     />
-                    <div className="ml-3 flex-shrink-0">
+                    {/* <div className="ml-3 flex-shrink-0">
                       <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.name}
+                        src={item|| "/placeholder.svg"}
+                        alt={item}
                         className="h-16 w-16 rounded object-cover"
                       />
-                    </div>
+                    </div> */}
                     <div className="ml-4 flex-1">
                       <div className="font-medium text-blue-600">
-                        {item.name}
+                        {item}
                       </div>
-                      <div className="flex items-center mt-1">
+                      {/* <div className="flex items-center mt-1">
                         <Input
                           type="number"
                           value={item.quantity}
@@ -275,7 +305,7 @@ export default function MealPlanner() {
                             <SelectItem value="g">g</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))}
