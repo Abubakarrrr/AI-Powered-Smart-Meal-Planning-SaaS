@@ -5,30 +5,27 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
+  Pencil,
   Plus,
   RotateCcw,
+  Trash,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import { Schema } from "mongoose";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export enum MealType {
@@ -39,76 +36,21 @@ export enum MealType {
 }
 
 interface Meal {
-  _id?:Schema.Types.ObjectId
+  _id: Schema.Types.ObjectId;
   title: string;
   description: string;
   ingredients: string[];
   steps: string[];
-  category: string; 
+  category: string;
   calories: number;
   protein: number;
   carbs: number;
   fats: number;
-  mealType:MealType
+  mealType: MealType;
 }
 
-
-// Sample meal data
-const initialMeals: Meal[] = [
-  {
-    id: 1,
-    type: "Breakfast",
-    calories: 130,
-    items: [
-      {
-        id: 1,
-        name: "Apple Toast",
-        calories: 130,
-        quantity: 1,
-        serving: "serving",
-        image: "https://via.placeholder.com/80",
-      },
-    ],
-  },
-  {
-    id: 2,
-    type: "Lunch",
-    calories: 84,
-    items: [
-      {
-        id: 1,
-        name: "Spinach and Broccoli Salad",
-        calories: 84,
-        quantity: 1,
-        serving: "serving",
-        image: "https://via.placeholder.com/80",
-      },
-    ],
-  },
-  {
-    id: 3,
-    type: "Snack",
-    calories: 84,
-    items: [
-      {
-        id: 1,
-        name: "Tuna Turmeric Salad",
-        calories: 84,
-        quantity: 0.5,
-        serving: "servings",
-        image: "https://via.placeholder.com/80",
-      },
-    ],
-  },
-  {
-    id: 4,
-    type: "Dinner",
-    calories: 0,
-    items: [],
-  },
-];
-
 export default function MealPlanner() {
+  const { toast } = useToast();
   const { date: urlDate } = useParams();
   const [date, setDate] = useState<Date>(
     urlDate ? parseISO(urlDate) : new Date()
@@ -118,6 +60,7 @@ export default function MealPlanner() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setMeals([]);
     const formattedDate = format(date, "yyyy-MM-dd");
     navigate(`/planner/${formattedDate}`, { replace: true });
   }, [date]);
@@ -126,17 +69,19 @@ export default function MealPlanner() {
     const fetchMeals = async () => {
       try {
         const formattedDate = format(date, "yyyy-MM-dd");
-        const response = await fetch(`${BASE_URL}/api/meal/v1/get-datewise-user-meal/date=${formattedDate}`,{
+        const response = await fetch(
+          `${BASE_URL}/api/meal/v1/get-datewise-user-meal/date=${formattedDate}`,
+          {
             method: "GET",
             credentials: "include",
-            headers: { "Content-Type": "application/json" }
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch meals");
-        }
+            headers: { "Content-Type": "application/json" },
+          }
+        );
         const data = await response.json();
-        console.log(data.meals);
-        setMeals(data.meals);
+        if (data) {
+          console.log(data.meals);
+          setMeals(data.meals);
+        }
       } catch (error) {
         console.error("Error fetching meals:", error);
       }
@@ -176,6 +121,43 @@ export default function MealPlanner() {
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear()
     );
+  };
+
+  const handleAddMeal = () => {
+    navigate(`/create-meal`, { state: { date: date } });
+  };
+  const handleEditMeal = (meal: Meal) => {
+    navigate(`/create-meal`, { state: { date: date, meal: meal } });
+  };
+
+  const handleDeleteMeal = async (mealIdToDelete: Schema.Types.ObjectId) => {
+    setMeals(meals?.filter((meal) => meal._id !== mealIdToDelete));
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/meal/v1/delete-meal/${mealIdToDelete}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Meal deleted successfully",
+        });
+        setMeals(meals?.filter((meal) => meal._id !== mealIdToDelete));
+      } else {
+        toast({
+          title: "Error",
+          description: "Something went wrong!",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Failed to process request" });
+    }
   };
 
   // if(!meals) return <div>Loading...</div>
@@ -230,7 +212,7 @@ export default function MealPlanner() {
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <div className="flex items-center">
               <h2 className="text-xl font-semibold">Meals</h2>
-              {totalCalories && totalCalories > 0 && (
+              {totalCalories !== undefined && totalCalories > 0 && (
                 <div className="flex items-center ml-4 text-amber-600">
                   <svg
                     viewBox="0 0 24 24"
@@ -244,6 +226,7 @@ export default function MealPlanner() {
               )}
             </div>
             <div className="flex items-center">
+              <Button onClick={handleAddMeal}>Create Meal</Button>
               <Button variant="ghost" size="icon">
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -265,55 +248,59 @@ export default function MealPlanner() {
                       </div>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    {/* Edit Button */}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleEditMeal(meal)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleDeleteMeal(meal._id)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
 
-                {meal?.ingredients.map((item) => (
+                <h2 className="text-3xl font-bold text-blue-600">
+                  {meal.title}
+                </h2>
+                <p className="mt-2 text-gray-700">{meal.description}</p>
+
+                <div className="mt-4 flex space-x-2">
+                  <Badge className="bg-blue-100 text-blue-600">
+                    {meal.category}
+                  </Badge>
+                  <Badge className="bg-green-100 text-green-600">
+                    {meal.mealType}
+                  </Badge>
+                </div>
+
+                {/* {meal?.ingredients.map((item) => (
                   <div key={item} className="flex items-center py-2">
                     <input
                       type="checkbox"
                       className="h-5 w-5 rounded border-gray-300"
                     />
-                    {/* <div className="ml-3 flex-shrink-0">
+                    <div className="ml-3 flex-shrink-0">
                       <img
                         src={item|| "/placeholder.svg"}
                         alt={item}
                         className="h-16 w-16 rounded object-cover"
                       />
-                    </div> */}
+                    </div> 
                     <div className="ml-4 flex-1">
-                      <div className="font-medium text-blue-600">
-                        {item}
-                      </div>
-                      {/* <div className="flex items-center mt-1">
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          className="w-16 h-8"
-                        />
-                        <Select defaultValue={item.serving}>
-                          <SelectTrigger className="w-28 h-8 ml-2">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="serving">serving</SelectItem>
-                            <SelectItem value="servings">servings</SelectItem>
-                            <SelectItem value="cup">cup</SelectItem>
-                            <SelectItem value="oz">oz</SelectItem>
-                            <SelectItem value="g">g</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div> */}
+                      <div className="font-medium text-blue-600">{item}</div>
                     </div>
                   </div>
-                ))}
-
-                <Button variant="ghost" className="mt-2" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Food
-                </Button>
+                ))} */}
               </div>
             ))}
           </CardContent>

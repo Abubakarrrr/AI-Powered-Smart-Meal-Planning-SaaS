@@ -25,8 +25,7 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
       carbs,
       fats,
       mealType,
-    } = req.body.meal;
-    console.log(req.body.meal);
+    } = req.body;
 
     // Validate required fields
     if (
@@ -71,10 +70,74 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
 
     res
       .status(201)
-      .json({ message: "Meal created successfully", meal: newMeal });
+      .json({
+        success: true,
+        message: "Meal created successfully",
+        meal: newMeal,
+      });
     return;
   } catch (error) {
     console.error("Error creating meal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(400).json({ success: false, message: "No such user" });
+      return;
+    }
+
+    // const userId = req.user._id;
+    const { mealId } = req.params;
+    const {
+      title,
+      description,
+      ingredients,
+      steps,
+      category,
+      calories,
+      protein,
+      carbs,
+      fats,
+      mealType,
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !description || !category || !calories || !mealType) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    // Find the meal by ID and check ownership
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      res.status(404).json({ success: false, message: "Meal not found" });
+      return;
+    }
+
+    // Update the meal fields
+    meal.title = title;
+    meal.description = description;
+    meal.ingredients = ingredients;
+    meal.steps = steps;
+    meal.category = category;
+    meal.calories = calories;
+    meal.protein = protein;
+    meal.carbs = carbs;
+    meal.fats = fats;
+    meal.mealType = mealType;
+
+    // Save the updated meal
+    await meal.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Meal updated successfully", meal });
+    return;
+  } catch (error) {
+    console.error("Error updating meal:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -89,7 +152,6 @@ export const getDateWiseUserMeal = async (
       return;
     }
     const { date } = req.params;
-    console.log(date);
     if (!date) {
       res.status(400).json({ success: false, message: "date is required" });
       return;
@@ -107,18 +169,23 @@ export const getDateWiseUserMeal = async (
     const endOfDay = new Date(selectedDate.setHours(23, 59, 59, 999));
 
     // Filter the meals by comparing the createdAt field within the start and end of the selected day
-    const userMealsForDate = user.meals.filter((meal) => {
+    const userMealsForDate = user.meals?.filter((meal) => {
       if (meal instanceof Meal) {
         const mealCreatedAt = new Date(meal.createdAt);
         return mealCreatedAt >= startOfDay && mealCreatedAt <= endOfDay;
-      } 
+      }
       // const mealCreatedAt = new Date(meal.createdAt);
       // return mealCreatedAt >= startOfDay && mealCreatedAt <= endOfDay;
     });
-    console.log("user",userMealsForDate)
+    console.log("user", userMealsForDate);
 
     if (userMealsForDate.length === 0) {
-      res.status(404).json({success:false, message: "No meals found for the selected date" });
+      res
+        .status(201)
+        .json({
+          success: false,
+          message: "No meals found for the selected date",
+        });
       return;
     }
 
@@ -128,5 +195,56 @@ export const getDateWiseUserMeal = async (
   } catch (error) {
     console.error("Error getting meals:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    const userId = req.user._id;
+
+    // Validate mealId
+    // if (!mongoose.Types.ObjectId.isValid(mealId)) {
+    //   return res.status(400).json({ success: false, message: "Invalid meal ID" });
+    // }
+
+    // Find the meal
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      res.status(404).json({ success: false, message: "Meal not found" });
+      return;
+    }
+
+    // Check if the user owns the meal
+    const user = await User.findById(userId);
+    if (!user || !user.meals.includes(meal._id as Schema.Types.ObjectId)) {
+      res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to delete this meal",
+        });
+      return;
+    }
+
+    // Remove meal from Meal collection
+    await Meal.findByIdAndDelete(mealId);
+
+    // Remove mealId from user's meals array
+    user.meals = user.meals.filter((id) => id.toString() !== mealId);
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Meal deleted successfully" });
+    return;
+  } catch (error) {
+    console.error("Error deleting meal:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+    return;
   }
 };

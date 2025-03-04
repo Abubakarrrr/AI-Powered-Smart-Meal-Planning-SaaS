@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,16 +15,20 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate, useLocation } from "react-router-dom";
+import { format } from "date-fns";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-
+// Validation Schema
 const mealSchema = z.object({
-title: z.string().min(3, "Title must be at least 3 characters"),
-description: z.string().min(10, "Description must be at least 10 characters"),
-category: z.enum(["Keto", "Vegan", "Low-carb", "High-protein", "Balanced"]),
-calories: z.coerce.number().min(1, "Calories must be positive"),
-protein: z.coerce.number().min(0),
-carbs: z.coerce.number().min(0),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  category: z.enum(["Keto", "Vegan", "Low-carb", "High-protein", "Balanced"]),
+  calories: z.coerce.number().min(1, "Calories must be positive"),
+  protein: z.coerce.number().min(0),
+  carbs: z.coerce.number().min(0),
   fats: z.coerce.number().min(0),
   mealType: z.enum(["Breakfast", "Lunch", "Dinner", "Snacks"]),
 });
@@ -32,6 +36,10 @@ carbs: z.coerce.number().min(0),
 type MealFormData = z.infer<typeof mealSchema>;
 
 export default function MealCreationPage() {
+  const location = useLocation();
+  const { date, meal } = location.state || {};
+  const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+
   const {
     register,
     handleSubmit,
@@ -39,7 +47,7 @@ export default function MealCreationPage() {
     formState: { errors },
   } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
-    defaultValues: {
+    defaultValues: meal || {
       title: "",
       description: "",
       category: "Keto",
@@ -51,10 +59,30 @@ export default function MealCreationPage() {
     },
   });
 
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [steps, setSteps] = useState<string[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>(
+    meal?.ingredients || []
+  );
+  const [steps, setSteps] = useState<string[]>(meal?.steps || []);
   const [inputValue, setInputValue] = useState("");
   const [stepInput, setStepInput] = useState("");
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Populate form with existing meal details
+  useEffect(() => {
+    if (meal) {
+      setValue("title", meal.title);
+      setValue("description", meal.description);
+      setValue("category", meal.category);
+      setValue("calories", meal.calories);
+      setValue("protein", meal.protein);
+      setValue("carbs", meal.carbs);
+      setValue("fats", meal.fats);
+      setValue("mealType", meal.mealType);
+      setIngredients(meal.ingredients || []);
+      setSteps(meal.steps || []);
+    }
+  }, [meal, setValue]);
 
   const addIngredient = () => {
     if (inputValue.trim() !== "") {
@@ -78,23 +106,43 @@ export default function MealCreationPage() {
     setSteps(steps.filter((_, i) => i !== index));
   };
 
-  const onSubmit = async(data: any) => {
-    console.log("Meal Data:", { ...data, ingredients, steps });
-    const meal = {...data,ingredients,steps}
-     console.log(meal)
+  const onSubmit = async (data: MealFormData) => {
+    const mealData = { ...data, ingredients, steps };
+
     try {
-        const res = await fetch(`${BASE_URL}/api/meal/v1/create-meal`, {
-          method: "POST",
+      const response = await fetch(
+        meal
+          ? `${BASE_URL}/api/meal/v1/update-meal/${meal._id}` // Edit API
+          : `${BASE_URL}/api/meal/v1/create-meal`, // Create API
+        {
+          method: meal ? "PUT" : "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({meal}),
+          body: JSON.stringify(mealData),
+        }
+      );
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: meal ? "Updated Successfully" : "Created Successfully",
+          description: meal
+            ? "Meal updated successfully."
+            : "Meal created successfully.",
         });
-        const data = await res.json();
-        console.log(data)
-      } catch (error) {
-        console.log(error)
+
+        navigate(`/planner/${formattedDate}`);
+      } else {
+        toast({
+          title: "Error",
+          description: responseData.message || "Something went wrong!",
+        });
       }
-    alert("Meal Created Successfully!");
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Failed to process request" });
+    }
   };
 
   return (
@@ -102,82 +150,77 @@ export default function MealCreationPage() {
       <Card className="w-full max-w-2xl shadow-xl rounded-2xl bg-white p-6">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-gray-800">
-            Create a Meal
+            {meal ? "Edit Meal" : "Create a Meal"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label>Meal Title</Label>
-              <Input {...register("title")} />
-              {errors.title && (
-                <p className="text-red-500 text-sm">{errors.title.message}</p>
-              )}
+            <Label>Meal Title</Label>
+            <Input {...register("title")} />
+            {errors.title && (
+              <p className="text-red-500 text-sm">{errors.title.message}</p>
+            )}
+            <Label>Description</Label>
+            <Textarea {...register("description")} />
+            {errors.description && (
+              <p className="text-red-500 text-sm">
+                {errors.description.message}
+              </p>
+            )}
+            <Label>Ingredients</Label>
+            <div className="flex gap-2">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+              <Button type="button" onClick={addIngredient}>
+                Add
+              </Button>
             </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea {...register("description")} />
-              {errors.description && (
-                <p className="text-red-500 text-sm">
-                  {errors.description.message}
-                </p>
-              )}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {ingredients.map((ingredient, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="cursor-pointer"
+                  onClick={() => removeIngredient(index)}
+                >
+                  {ingredient} ✕
+                </Badge>
+              ))}
             </div>
-            <div>
-              <Label>Ingredients</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                />
-                <Button type="button" onClick={addIngredient}>
-                  Add
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {ingredients.map((ingredient, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer"
-                    onClick={() => removeIngredient(index)}
-                  >
-                    {ingredient} ✕
-                  </Badge>
-                ))}
-              </div>
+            <Label>Steps</Label>
+            <div className="flex gap-2">
+              <Input
+                value={stepInput}
+                onChange={(e) => setStepInput(e.target.value)}
+              />
+              <Button type="button" onClick={addStep}>
+                Add
+              </Button>
             </div>
-            <div>
-              <Label>Steps</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={stepInput}
-                  onChange={(e) => setStepInput(e.target.value)}
-                />
-                <Button type="button" onClick={addStep}>
-                  Add
-                </Button>
-              </div>
-              <ul className="list-decimal pl-6 mt-2">
-                {steps.map((step, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    {step}
-                    <Button variant="ghost" onClick={() => removeStep(index)}>
-                      ✕
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="list-decimal pl-6 mt-2">
+              {steps.map((step, index) => (
+                <li key={index} className="flex justify-between items-center">
+                  {step}
+                  <Button variant="ghost" onClick={() => removeStep(index)}>
+                    ✕
+                  </Button>
+                </li>
+              ))}
+            </ul>
             <div>
               <Label>Category</Label>
               <Select
+                defaultValue={meal?.category} // Set default value from meal if editing
                 onValueChange={(value) =>
                   setValue("category", value as MealFormData["category"])
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
+                  <SelectValue
+                    placeholder={meal?.category || "Select Category"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {[
@@ -196,23 +239,23 @@ export default function MealCreationPage() {
             </div>
             <Label>Meal Type</Label>{" "}
             <Select
+              defaultValue={meal?.mealType} // Set default value from meal if editing
               onValueChange={(value) =>
                 setValue("mealType", value as MealFormData["mealType"])
               }
             >
-              {" "}
               <SelectTrigger>
-                {" "}
-                <SelectValue placeholder="Select Meal Type" />{" "}
-              </SelectTrigger>{" "}
+                <SelectValue
+                  placeholder={meal?.mealType || "Select Meal Type"}
+                />
+              </SelectTrigger>
               <SelectContent>
-                {" "}
                 {["Breakfast", "Lunch", "Dinner", "Snacks"].map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>
-                ))}{" "}
-              </SelectContent>{" "}
+                ))}
+              </SelectContent>
             </Select>
             <Label>Calories</Label>{" "}
             <Input
@@ -236,9 +279,9 @@ export default function MealCreationPage() {
             <Input type="number" placeholder="Fats (g)" {...register("fats")} />
             <Button
               type="submit"
-              className="w-full  text-white py-2 rounded-md font-semibold"
+              className="w-full text-white py-2 rounded-md font-semibold"
             >
-              Submit
+              {meal ? "Update Meal" : "Create Meal"}
             </Button>
           </form>
         </CardContent>
