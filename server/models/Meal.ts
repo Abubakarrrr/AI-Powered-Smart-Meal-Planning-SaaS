@@ -21,6 +21,8 @@ export interface IMeal extends Document {
   mealType:MealType
   createdAt:Date;
   updatedAt:Date;
+  isLogged:boolean
+  avatar?:string
   // createdBy: Types.ObjectId; 
 }
 
@@ -35,7 +37,9 @@ const MealSchema: Schema = new Schema<IMeal>(
     protein: { type: Number, required: true },
     carbs: { type: Number, required: true },
     fats: { type: Number, required: true },
+    isLogged: { type: Boolean, default: false },
     mealType:{type: String, enum: Object.values(MealType), required: true },
+    avatar: { type: String, default: null },
     // createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

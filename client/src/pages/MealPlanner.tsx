@@ -26,6 +26,8 @@ import { useParams } from "react-router";
 import { Schema } from "mongoose";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export enum MealType {
@@ -47,6 +49,7 @@ interface Meal {
   carbs: number;
   fats: number;
   mealType: MealType;
+  isLogged: boolean;
 }
 
 export default function MealPlanner() {
@@ -65,27 +68,27 @@ export default function MealPlanner() {
     navigate(`/planner/${formattedDate}`, { replace: true });
   }, [date]);
 
-  useEffect(() => {
-    const fetchMeals = async () => {
-      try {
-        const formattedDate = format(date, "yyyy-MM-dd");
-        const response = await fetch(
-          `${BASE_URL}/api/meal/v1/get-datewise-user-meal/date=${formattedDate}`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        const data = await response.json();
-        if (data) {
-          console.log(data.meals);
-          setMeals(data.meals);
+  const fetchMeals = async () => {
+    try {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      const response = await fetch(
+        `${BASE_URL}/api/meal/v1/get-datewise-user-meal/date=${formattedDate}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         }
-      } catch (error) {
-        console.error("Error fetching meals:", error);
+      );
+      const data = await response.json();
+      if (data) {
+        console.log(data.meals);
+        setMeals(data.meals);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching meals:", error);
+    }
+  };
+  useEffect(() => {
     fetchMeals();
   }, [date]);
 
@@ -126,6 +129,7 @@ export default function MealPlanner() {
   const handleAddMeal = () => {
     navigate(`/create-meal`, { state: { date: date } });
   };
+
   const handleEditMeal = (meal: Meal) => {
     navigate(`/create-meal`, { state: { date: date, meal: meal } });
   };
@@ -148,6 +152,41 @@ export default function MealPlanner() {
           description: "Meal deleted successfully",
         });
         setMeals(meals?.filter((meal) => meal._id !== mealIdToDelete));
+      } else {
+        toast({
+          title: "Error",
+          description: "Something went wrong!",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Failed to process request" });
+    }
+  };
+
+  const handleLogMeal = async (
+    mealId: Schema.Types.ObjectId,
+    isLogged: Boolean
+  ) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/meal/v1/log-meal/${mealId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isLogged }),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        await fetchMeals();
+        toast({
+          title: "Success",
+          description: isLogged
+            ? "Meal has been logged successfully."
+            : "Meal has been unlogged successfully.",
+        });
       } else {
         toast({
           title: "Error",
@@ -281,6 +320,19 @@ export default function MealPlanner() {
                   <Badge className="bg-green-100 text-green-600">
                     {meal.mealType}
                   </Badge>
+                </div>
+
+                <div className="flex items-center space-x-2 my-4">
+                  <Checkbox
+                    className="h-[25px] w-[25px]"
+                    checked={meal.isLogged}
+                    onCheckedChange={() =>
+                      handleLogMeal(meal._id, !meal.isLogged)
+                    }
+                  />
+                  <Label className="cursor-pointer">
+                    {meal.isLogged ? "Meal Logged" : "Log Meal"}
+                  </Label>
                 </div>
 
                 {/* {meal?.ingredients.map((item) => (

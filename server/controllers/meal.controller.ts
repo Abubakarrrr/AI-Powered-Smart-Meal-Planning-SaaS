@@ -68,13 +68,11 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
     user.meals.push(id);
     await user.save();
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Meal created successfully",
-        meal: newMeal,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Meal created successfully",
+      meal: newMeal,
+    });
     return;
   } catch (error) {
     console.error("Error creating meal:", error);
@@ -177,15 +175,12 @@ export const getDateWiseUserMeal = async (
       // const mealCreatedAt = new Date(meal.createdAt);
       // return mealCreatedAt >= startOfDay && mealCreatedAt <= endOfDay;
     });
-    console.log("user", userMealsForDate);
 
     if (userMealsForDate.length === 0) {
-      res
-        .status(201)
-        .json({
-          success: false,
-          message: "No meals found for the selected date",
-        });
+      res.status(201).json({
+        success: false,
+        message: "No meals found for the selected date",
+      });
       return;
     }
 
@@ -222,12 +217,10 @@ export const deleteMeal = async (req: RequestWithUser, res: Response) => {
     // Check if the user owns the meal
     const user = await User.findById(userId);
     if (!user || !user.meals.includes(meal._id as Schema.Types.ObjectId)) {
-      res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to delete this meal",
-        });
+      res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this meal",
+      });
       return;
     }
 
@@ -246,5 +239,45 @@ export const deleteMeal = async (req: RequestWithUser, res: Response) => {
     console.error("Error deleting meal:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
     return;
+  }
+};
+
+export const logMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(400).json({ success: false, message: "No such user" });
+      return;
+    }
+    const { mealId } = req.params;
+    const { isLogged } = req.body; // `isLogged` will be true (log) or false (unlog)
+
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!userId || !mealId || typeof isLogged !== "boolean") {
+      res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+      return;
+    }
+
+    // Find the meal log entry
+    let mealLog = await Meal.findByIdAndUpdate(
+      mealId,
+      { $set: { isLogged } },
+      { new: true, upsert: true }
+    );
+    const log = mealLog.isLogged;
+
+    res.status(200).json({
+      success: true,
+      message: isLogged
+        ? "Meal logged successfully"
+        : "Meal unlogged successfully",
+      log,
+    });
+  } catch (error) {
+    console.error("Error logging meal:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
