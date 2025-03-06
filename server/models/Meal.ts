@@ -1,5 +1,4 @@
-import mongoose, { Schema, Document,Types } from "mongoose";
-
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export enum MealType {
   Breakfast = "Breakfast",
@@ -7,9 +6,16 @@ export enum MealType {
   Dinner = "Dinner",
   Snacks = "Snacks",
 }
+export enum CreatedBy {
+  Admin = "admin",
+  User = "user",
+  Nutritionist = "nutritionist",
+}
+
 export interface IMeal extends Document {
-  id?:Schema.Types.ObjectId
+  id?: Schema.Types.ObjectId;
   title: string;
+  images?: string[];
   description: string;
   ingredients: string[];
   steps: string[];
@@ -18,12 +24,12 @@ export interface IMeal extends Document {
   protein: number;
   carbs: number;
   fats: number;
-  mealType:MealType
-  createdAt:Date;
-  updatedAt:Date;
-  isLogged:boolean
-  avatar?:string
-  // createdBy: Types.ObjectId; 
+  mealType: MealType;
+  createdAt: Date;
+  updatedAt: Date;
+  // isLogged: boolean;
+  avatar?: string;
+  createdBy: CreatedBy;
 }
 
 const MealSchema: Schema = new Schema<IMeal>(
@@ -37,13 +43,15 @@ const MealSchema: Schema = new Schema<IMeal>(
     protein: { type: Number, required: true },
     carbs: { type: Number, required: true },
     fats: { type: Number, required: true },
-    isLogged: { type: Boolean, default: false },
-    mealType:{type: String, enum: Object.values(MealType), required: true },
+    // isLogged: { type: Boolean, default: false },
+    mealType: { type: String, enum: Object.values(MealType), required: true },
     avatar: { type: String, default: null },
+    createdBy: { type: String, enum :Object.values(CreatedBy),required: true },
+    images: { type: [String], default: [] },
     // createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
 
 const Meal = mongoose.model<IMeal>("Meal", MealSchema);
-export default Meal
+export default Meal;

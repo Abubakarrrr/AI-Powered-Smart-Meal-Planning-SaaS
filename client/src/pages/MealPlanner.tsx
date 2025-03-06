@@ -180,7 +180,7 @@ export default function MealPlanner() {
       );
       const data = await response.json();
       if (response.ok) {
-        await fetchMeals();
+        await fetchMeals()
         toast({
           title: "Success",
           description: isLogged

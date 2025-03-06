@@ -14,6 +14,7 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
       return;
     }
     const userId = req.user._id;
+    const role = req.user.role;
     const {
       title,
       description,
@@ -52,6 +53,7 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
       carbs,
       fats,
       mealType,
+      createdBy:role
     });
 
     // Save meal to DB
@@ -201,6 +203,7 @@ export const deleteMeal = async (req: RequestWithUser, res: Response) => {
       return;
     }
     const userId = req.user._id;
+    const role = req.user.role;
 
     // Validate mealId
     // if (!mongoose.Types.ObjectId.isValid(mealId)) {
@@ -213,8 +216,9 @@ export const deleteMeal = async (req: RequestWithUser, res: Response) => {
       res.status(404).json({ success: false, message: "Meal not found" });
       return;
     }
+    // if(role == "admin"  && createdBY)
 
-    // Check if the user owns the meal
+    // Check if the user owns the meal    
     const user = await User.findById(userId);
     if (!user || !user.meals.includes(meal._id as Schema.Types.ObjectId)) {
       res.status(403).json({
@@ -267,17 +271,22 @@ export const logMeal = async (req: RequestWithUser, res: Response) => {
       { $set: { isLogged } },
       { new: true, upsert: true }
     );
-    const log = mealLog.isLogged;
+    // const log = mealLog.isLogged;
 
     res.status(200).json({
       success: true,
-      message: isLogged
-        ? "Meal logged successfully"
-        : "Meal unlogged successfully",
-      log,
+      // message: isLogged
+        // ? "Meal logged successfully"
+        // : "Meal unlogged successfully",
+      // log,
     });
   } catch (error) {
     console.error("Error logging meal:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+//created by admin , role user delete from user meals array
+//created by admin , role admin delete from schema 
+//created by user , role user delete from both
+

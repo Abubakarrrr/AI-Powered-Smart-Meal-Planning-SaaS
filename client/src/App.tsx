@@ -17,9 +17,10 @@ import PageNotFound from "@/components/shared/PageNotFound";
 import AdminLayout from "./components/layout/AdminLayout";
 import UserManagement from "@/components/dashboard/admin/users/UserManagement"
 import UserProfileForm from "./pages/Goals";
-import AdminProtectedRoute from "./utils/AdminProtectedRoute";
+// import AdminProtectedRoute from "./utils/AdminProtectedRoute";
 import MealCreationPage from "./pages/MealCreation";
 import MealPlanner from "./pages/MealPlanner";
+import MealsManagement from "@/components/dashboard/admin/meals/MealManagement";
 
 function App() {
   return (
@@ -71,17 +72,25 @@ function App() {
           <Route
             path="/admin"
             element={
-              <AdminProtectedRoute>
+              // <AdminProtectedRoute>
                 <AdminLayout />
-              </AdminProtectedRoute>
+              // </AdminProtectedRoute>
             }
           >
             <Route
               path="users"
               element={
-                <AdminProtectedRoute>
+                // <AdminProtectedRoute>
                   <UserManagement />
-                 </AdminProtectedRoute>
+                //  </AdminProtectedRoute>
+              }
+            />
+            <Route
+              path="meals"
+              element={
+                // <AdminProtectedRoute>
+                  <MealsManagement />
+                //  </AdminProtectedRoute>
               }
             />
           </Route>
