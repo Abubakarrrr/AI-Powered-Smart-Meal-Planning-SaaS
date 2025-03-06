@@ -1,4 +1,4 @@
-import { createMeal,deleteMeal,getDateWiseUserMeal,updateMeal,logMeal } from "@controllers/meal.controller";
+import { createMeal,deleteMeal,getDateWiseUserMeal,updateMeal,logMeal, deleteImage } from "@controllers/meal.controller";
 import { verifyJWT } from "@middlewares/auth";
 import express from "express";
 const router = express.Router();
@@ -8,5 +8,7 @@ router.post("/create-meal",verifyJWT,createMeal);
 router.put("/update-meal/:mealId",verifyJWT,updateMeal);
 router.delete("/delete-meal/:mealId",verifyJWT,deleteMeal);
 router.post("/log-meal/:mealId",verifyJWT,logMeal);
+// router.post("/upload-image",logMeal);
+router.post("/delete-image",deleteImage);
 
 export default router 

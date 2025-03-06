@@ -6,7 +6,6 @@ import {
   ChevronRight,
   MoreVertical,
   Pencil,
-  Plus,
   RotateCcw,
   Trash,
 } from "lucide-react";
