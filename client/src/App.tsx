@@ -22,6 +22,8 @@ import MealCreationPage from "./pages/MealCreation";
 import MealPlanner from "./pages/MealPlanner";
 import MealsManagement from "@/components/dashboard/admin/meals/MealManagement";
 import AddMealPage from "./components/dashboard/admin/meals/AddMealPage";
+import MealsList from "./pages/MealsListing/Listing";
+import MealDetails from "./pages/MealsListing/MealDetails";
 
 function App() {
   return (
@@ -67,7 +69,10 @@ function App() {
           <Route path="/goals" element={<UserProfileForm />} />
           <Route path="/create-meal" element={<MealCreationPage />} />
           <Route path="/planner/:date" element={<MealPlanner />} />
+          <Route path="/meals" element={<MealsList />} />
+          <Route path="/meal/:id" element={<MealDetails />} />
           <Route path="*" element={<PageNotFound />} />
+
           {/* Admin protected routes  */}
         
           <Route
