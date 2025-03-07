@@ -6,9 +6,10 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Schema } from "mongoose";
 
 export interface Meal {
-  id: number;
+  _id: Schema.Types.ObjectId;
   title: string;
   description: string;
   category: string;
@@ -28,7 +29,7 @@ interface MealCardProps {
 
 export default function MealCard({ meal }: MealCardProps) {
   return (
-    <Link to={`/meal/${meal.id}`}>
+    <Link to={`/meal/${meal._id}`}>
       <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <div className="aspect-video w-full overflow-hidden">
           <img

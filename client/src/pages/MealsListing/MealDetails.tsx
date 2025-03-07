@@ -10,9 +10,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ChevronLeft } from "lucide-react";
+import { Schema } from "mongoose";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface Meal {
-  id: number;
+  _id: Schema.Types.ObjectId;
   title: string;
   description: string;
   category: string;
@@ -26,54 +28,30 @@ export interface Meal {
   images: string[];
 }
 export default function MealDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [meal, setMeal] = useState<Meal | null>({
-    id: 1,
-    title: "Grilled Salmon with Asparagus",
-    description:
-      "A delicious and healthy meal featuring grilled salmon fillet served with fresh asparagus and lemon.",
-    category: "Seafood",
-    mealType: "Dinner",
-    calories: 420,
-    protein: 38,
-    carbs: 12,
-    fats: 25,
-    ingredients: [
-      "Salmon fillet",
-      "Asparagus",
-      "Olive oil",
-      "Lemon",
-      "Garlic",
-      "Salt",
-      "Black pepper",
-      "Dill",
-    ],
-    steps: [
-      "Preheat grill to medium-high heat.",
-      "Season salmon with salt, pepper, and dill.",
-      "Trim asparagus and toss with olive oil, salt, and pepper.",
-      "Grill salmon for 4-5 minutes per side until cooked through.",
-      "Grill asparagus for 3-4 minutes, turning occasionally.",
-      "Serve with fresh lemon wedges.",
-    ],
-    images: [
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-    ],
-  });
+  const [meal, setMeal] = useState<Meal | null>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMeal = async () => {
       if (!id) return;
-
       try {
-        // const data = await getMealById(Number.parseInt(id))
-        // setMeal(data);
+        setLoading(true);
+        const response = await fetch(
+          `${BASE_URL}/api/meal/v1/getMealById/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        const data = await response.json();
+        if (data) {
+          setMeal(data.meal);
+        }
       } catch (error) {
-        console.error("Error fetching meal details:", error);
+        console.log(error);
       } finally {
         setLoading(false);
       }

@@ -564,6 +564,26 @@ export const deleteAdminMeal = async (req: RequestWithUser, res: Response) => {
   }
 };
 
+export const getMealById = async (req: Request, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      res.status(404).json({ success: false, message: "Meal not found" });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Meal fetched successfully",
+      meal,
+    });
+    return;
+  } catch (error) {
+    console.error("Error fetching meal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 //created by admin , role user delete from user meals array
 //created by admin , role admin delete from schema
 //created by user , role user delete from both
