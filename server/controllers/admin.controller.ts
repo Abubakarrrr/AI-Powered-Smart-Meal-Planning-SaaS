@@ -1,12 +1,13 @@
-import User, { UserStatus } from "@models/User";
+import User, { IUser, UserStatus } from "@models/User";
 import { ApiError } from "@utils/apiError";
 import { ApiResponse } from "@utils/apiResponse";
 import { asyncHandler } from "@utils/aysncHandler";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { userCreationEmail } from "@utils/emailSender";
+import Meal, { CreatedBy } from "@models/Meal";
 
-//create user 
+//create user
 export const createUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, password, role } = req.body;
@@ -19,7 +20,7 @@ export const createUser = asyncHandler(
       return;
     }
 
-    // Check if user already exists 
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res
@@ -115,6 +116,7 @@ export const deleteUser = asyncHandler(
   }
 );
 
+//update user
 export const updateUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
@@ -126,10 +128,16 @@ export const updateUser = asyncHandler(
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    let updatedFields: Partial<{ password: string; status: UserStatus; role: string }> = {};
+    let updatedFields: Partial<{
+      password: string;
+      status: UserStatus;
+      role: string;
+    }> = {};
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updatedFields.password = hashedPassword;
@@ -139,14 +147,16 @@ export const updateUser = asyncHandler(
     if (status) {
       updatedFields.status = status;
       // if (status === UserStatus.BLOCKED) {
-        // await accountBlockedEmail(user.name, user.email);
+      // await accountBlockedEmail(user.name, user.email);
       // }
     }
     if (role) {
       updatedFields.role = role;
     }
     // Update user
-    const newUser =await User.findByIdAndUpdate(userId, updatedFields, { new: true });
+    const newUser = await User.findByIdAndUpdate(userId, updatedFields, {
+      new: true,
+    });
 
     return res.status(200).json(
       new ApiResponse(
@@ -160,3 +170,27 @@ export const updateUser = asyncHandler(
   }
 );
 
+//getAllMeals-Admin
+
+export const getAllMeals = async (req: Request, res: Response) => {
+  try {
+
+    const meals = await Meal.find({ createdBy:"admin" });
+    if (!meals.length) {
+       res.status(200).json({
+        success: false,
+        message: "No meals created by Admin found",
+        meals: [],
+      });
+      return;
+    }
+    // ✅ 3. Return meals
+    res.status(200).json({
+      success: true,
+      meals,
+    });
+  } catch (error) {
+    console.error("Error fetching admin meals:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

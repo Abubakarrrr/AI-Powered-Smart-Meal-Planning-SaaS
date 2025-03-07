@@ -397,6 +397,173 @@ export const deleteImage = async (req: Request, res: Response) => {
   }
 };
 
+export const createAdminMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(400).json({ success: false, message: "No such user" });
+      return;
+    }
+    const userId = req.user._id;
+    const role = req.user.role;
+    const {
+      title,
+      description,
+      ingredients,
+      steps,
+      category,
+      calories,
+      protein,
+      carbs,
+      fats,
+      mealType,
+      images,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !userId ||
+      !title ||
+      !description ||
+      !category ||
+      !calories ||
+      !mealType
+    ) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    // Create the meal
+    const newMeal = new Meal({
+      title,
+      description,
+      ingredients,
+      steps,
+      category,
+      calories,
+      protein,
+      carbs,
+      fats,
+      mealType,
+      createdBy: role,
+      images,
+    });
+
+    // Save meal to DB
+    await newMeal.save();
+
+    // Add meal to user's meal array
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ success: "false", message: "User not found" });
+      return;
+    }
+    const id = newMeal._id as Schema.Types.ObjectId;
+    user.meals.push(id);
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Meal created successfully",
+      meal: newMeal,
+    });
+    return;
+  } catch (error) {
+    console.error("Error creating meal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const updateAdminMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(400).json({ success: false, message: "No such user" });
+      return;
+    }
+
+    // const userId = req.user._id;
+    const { mealId } = req.params;
+    const {
+      title,
+      description,
+      ingredients,
+      steps,
+      category,
+      calories,
+      protein,
+      carbs,
+      fats,
+      mealType,
+      images,
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !description || !category || !calories || !mealType) {
+      res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+      return;
+    }
+
+    // Find the meal by ID and check ownership
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      res.status(404).json({ success: false, message: "Meal not found" });
+      return;
+    }
+
+    // Update the meal fields
+    meal.title = title;
+    meal.description = description;
+    meal.ingredients = ingredients;
+    meal.steps = steps;
+    meal.category = category;
+    meal.calories = calories;
+    meal.protein = protein;
+    meal.carbs = carbs;
+    meal.fats = fats;
+    meal.mealType = mealType;
+    meal.images = images;
+
+    // Save the updated meal
+    await meal.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Meal updated successfully", meal });
+    return;
+  } catch (error) {
+    console.error("Error updating meal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const deleteAdminMeal = async (req: RequestWithUser, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(400).json({ success: false, message: "No such user" });
+      return;
+    }
+    const { mealId } = req.params;
+
+    // Find the meal by ID
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      res.status(404).json({ success: false, message: "Meal not found" });
+      return;
+    }
+
+    // Delete the meal
+    await Meal.findByIdAndDelete(mealId);
+
+    res.status(200).json({
+      success: true,
+      message: "Meal deleted successfully",
+    });
+    return;
+  } catch (error) {
+    console.error("Error deleting meal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 //created by admin , role user delete from user meals array
 //created by admin , role admin delete from schema
 //created by user , role user delete from both

@@ -1,9 +1,16 @@
-import { Edit, Trash2 } from "lucide-react"
-import {Link} from "react-router-dom"
-import { type Meal, MealType } from "./type"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { type Meal, MealType } from "./type";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,38 +21,48 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Schema } from "mongoose";
 
 interface MealCardProps {
-  meal: Meal
-  onDelete: (id: string) => void
+  meal: Meal;
+  onDelete: (id: Schema.Types.ObjectId) => void;
 }
 
 export function MealCard({ meal, onDelete }: MealCardProps) {
+  const navigate = useNavigate();
   const getMealTypeColor = (mealType: MealType) => {
     switch (mealType) {
       case MealType.BREAKFAST:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case MealType.LUNCH:
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-100 text-green-800 border-green-200";
       case MealType.DINNER:
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case MealType.SNACK:
-        return "bg-purple-100 text-purple-800 border-purple-200"
+        return "bg-purple-100 text-purple-800 border-purple-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
+  const editMeal = () => {
+    navigate(`/admin/meals/edit`, { state: { meal: meal } });
+  };
 
   return (
     <Card className="h-full flex flex-col">
+
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl">{meal.title}</CardTitle>
-            <CardDescription className="mt-2">{meal.description}</CardDescription>
+            <CardDescription className="mt-2">
+              {meal.description}
+            </CardDescription>
           </div>
-          <Badge className={`ml-2 ${getMealTypeColor(meal.mealType)}`}>{MealType[meal.mealType]}</Badge>
+          <Badge className={`ml-2 ${getMealTypeColor(meal.mealType)}`}>
+            {MealType[meal.mealType]}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
@@ -56,7 +73,9 @@ export function MealCard({ meal, onDelete }: MealCardProps) {
           </div>
           <div>
             <h4 className="text-sm font-medium mb-1">Calories</h4>
-            <p className="text-sm text-muted-foreground">{meal.calories} kcal</p>
+            <p className="text-sm text-muted-foreground">
+              {meal.calories} kcal
+            </p>
           </div>
           <div>
             <h4 className="text-sm font-medium mb-1">Ingredients</h4>
@@ -69,15 +88,15 @@ export function MealCard({ meal, onDelete }: MealCardProps) {
         </div>
       </CardContent>
       <CardFooter className="border-t pt-4 flex justify-between">
-        <Button variant="outline" size="sm" asChild>
-          <Link to={`/meals/edit/${meal.id}`}>
+        <Button variant="outline" size="sm" asChild onClick={editMeal}>
+          <span>
             <Edit className="h-4 w-4 mr-2" />
             Edit
-          </Link>
+          </span>
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
+            <Button variant="destructive" size="sm" >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </Button>
@@ -86,17 +105,19 @@ export function MealCard({ meal, onDelete }: MealCardProps) {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the meal "{meal.title}" from the database.
+                This action cannot be undone. This will permanently delete the
+                meal "{meal.title}" from the database.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onDelete(meal.id)}>Delete</AlertDialogAction>
+              <AlertDialogAction onClick={() => onDelete(meal._id!)}>
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </CardFooter>
     </Card>
-  )
+  );
 }
-

@@ -1,3 +1,5 @@
+import { Schema } from "mongoose";
+
 export enum MealType {
   BREAKFAST = "BREAKFAST",
   LUNCH = "LUNCH",
@@ -6,7 +8,7 @@ export enum MealType {
 }
 
 export interface Meal {
-  id: string;
+  _id?: Schema.Types.ObjectId;
   title: string;
   description: string;
   ingredients: string[];

@@ -21,6 +21,7 @@ import UserProfileForm from "./pages/Goals";
 import MealCreationPage from "./pages/MealCreation";
 import MealPlanner from "./pages/MealPlanner";
 import MealsManagement from "@/components/dashboard/admin/meals/MealManagement";
+import AddMealPage from "./components/dashboard/admin/meals/AddMealPage";
 
 function App() {
   return (
@@ -90,6 +91,22 @@ function App() {
               element={
                 // <AdminProtectedRoute>
                   <MealsManagement />
+                //  </AdminProtectedRoute>
+              }
+            />
+             <Route
+              path="meals/add"
+              element={
+                // <AdminProtectedRoute>
+                  <AddMealPage />
+                //  </AdminProtectedRoute>
+              }
+            />
+               <Route
+              path="meals/edit"
+              element={
+                // <AdminProtectedRoute>
+                  <AddMealPage />
                 //  </AdminProtectedRoute>
               }
             />

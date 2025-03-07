@@ -38,14 +38,14 @@ type MealFormData = z.infer<typeof mealSchema>;
 
 export default function MealCreationPage() {
   const location = useLocation();
-  const { date, meal } = location.state || {}; 
+  const { date, meal } = location.state || {};
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<MealFormData>({ 
+  } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
     defaultValues: meal || {
       title: "",
@@ -68,7 +68,7 @@ export default function MealCreationPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<string[]>([]);
 
   // Populate form with existing meal details
   useEffect(() => {
@@ -82,6 +82,7 @@ export default function MealCreationPage() {
       setValue("fats", meal.fats);
       setValue("mealType", meal.mealType);
       setIngredients(meal.ingredients || []);
+      setImages(meal.images || []);
       setSteps(meal.steps || []);
     }
   }, [meal, setValue]);
@@ -109,7 +110,7 @@ export default function MealCreationPage() {
   };
 
   const onSubmit = async (data: MealFormData) => {
-    const mealData = { ...data, ingredients, steps , images, date };
+    const mealData = { ...data, ingredients, steps, images, date };
 
     try {
       const response = await fetch(
@@ -149,22 +150,21 @@ export default function MealCreationPage() {
 
   const handleImagesChange = (images: string[]) => {
     // console.log("Images updated:", images)
-  }
-
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-gray-100">
       <Card className="w-full max-w-2xl shadow-xl rounded-2xl bg-white p-6">
         <CardHeader>
-        <ImageUploader
+          <CardTitle className="text-center text-2xl font-bold text-gray-800">
+            {meal ? "Edit Meal" : "Create a Meal"}
+          </CardTitle>
+          <ImageUploader
             maxImages={3}
             onImagesChange={handleImagesChange}
             images={images}
             setImages={setImages}
           />
-          <CardTitle className="text-center text-2xl font-bold text-gray-800">
-            {meal ? "Edit Meal" : "Create a Meal"}
-          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
