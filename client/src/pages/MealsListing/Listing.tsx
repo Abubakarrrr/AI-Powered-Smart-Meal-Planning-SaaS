@@ -12,6 +12,7 @@ import { mealTypes, mealCategories } from "@/types";
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface Meal {
@@ -34,6 +35,9 @@ export default function MealsList() {
   const [selectedMealType, setSelectedMealType] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(10); // Number of meals per page
 
   const navigate = useNavigate();
   const location = useLocation(); // To get the current URL and query params
@@ -41,19 +45,29 @@ export default function MealsList() {
   // On component mount, read filters from URL and set states
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
+    const pageParam = queryParams.get("page") || "1";
     const mealTypeParam = queryParams.get("mealType");
     const categoryParam = queryParams.get("category");
 
+    setCurrentPage(parseInt(pageParam)); // Set the current page
     if (mealTypeParam) setSelectedMealType(mealTypeParam);
     if (categoryParam) setSelectedCategory(categoryParam);
 
-    fetchMeals(mealTypeParam, categoryParam);
+    fetchMeals(pageParam, mealTypeParam, categoryParam);
   }, [location.search]); // Runs when query params change
 
-  const fetchMeals = async (mealType: string | null, category: string | null) => {
+  // Fetch meals based on filters and pagination
+  const fetchMeals = async (
+    page: string,
+    mealType: string | null,
+    category: string | null
+  ) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
+      queryParams.append("page", page);
+      queryParams.append("limit", limit.toString());
+
       if (mealType) queryParams.append("mealType", mealType);
       if (category) queryParams.append("category", category);
 
@@ -67,6 +81,7 @@ export default function MealsList() {
       const data = await response.json();
       if (data) {
         setMeals(data.meals);
+        setTotalPages(data.totalPages); // Set total pages for pagination
       }
     } catch (error) {
       console.log(error);
@@ -75,9 +90,10 @@ export default function MealsList() {
     }
   };
 
-  // Sync URL with selected filters
+  // Sync URL with selected filters and page number
   useEffect(() => {
     const params = new URLSearchParams();
+    params.set("page", currentPage.toString());
     if (selectedMealType) params.set("mealType", selectedMealType);
     if (selectedCategory) params.set("category", selectedCategory);
 
@@ -85,7 +101,22 @@ export default function MealsList() {
       pathname: "/meals",
       search: params.toString(), // Updates the query params
     });
-  }, [selectedMealType, selectedCategory, navigate]);
+  }, [currentPage, selectedMealType, selectedCategory, navigate]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle filter change
+  const handleFilterChange = (filterType: "mealType" | "category", value: string) => {
+    if (filterType === "mealType") {
+      setSelectedMealType(value);
+    } else if (filterType === "category") {
+      setSelectedCategory(value);
+    }
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
 
   if (loading) {
     return (
@@ -111,10 +142,10 @@ export default function MealsList() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-42">
               {mealTypes.map((type) => (
-                <DropdownMenuItem
+                <DropdownMenuItem 
                   key={type}
-                  onClick={() => setSelectedMealType(type)}
-                >
+                  onClick={() => handleFilterChange("mealType", type)}
+                >  
                   {type}
                 </DropdownMenuItem>
               ))}
@@ -136,7 +167,7 @@ export default function MealsList() {
               {mealCategories.map((category) => (
                 <DropdownMenuItem
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleFilterChange("category", category)}
                 >
                   {category}
                 </DropdownMenuItem>
@@ -145,13 +176,34 @@ export default function MealsList() {
           </DropdownMenu>
         </div>
       </div>
-      {meals.length==0 && <div className="flex justify-center items-center h-64">
-        <p className="text-lg text-gray-600">No meals found</p>
-      </div>}
+
+      {meals.length === 0 && (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-lg text-gray-600">No meals found</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {meals.map((meal) => (
-          <MealCard key={meal.title} meal={meal} />
+          <MealCard key={meal._id.toString()} meal={meal} />
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center gap-2 mt-8">
+        <Button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+        >
+          Previous
+        </Button>
+        <span className="my-auto">{currentPage}</span>
+        <Button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+        >   
+          Next
+        </Button>
       </div>
     </div>
   );

@@ -174,24 +174,35 @@ export const updateUser = asyncHandler(
 
 export const getAllMeals = async (req: Request, res: Response) => {
   try {
-    const { mealType, category } = req.query;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
     let filter: any = { createdBy: "admin" };
-    if (mealType) filter.mealType = mealType;
-    if (category) filter.category = category;
-    const meals = await Meal.find(filter);
-    if (!meals.length) { 
-       res.status(200).json({
-        success: false,
-        message: "No meals created by Admin found",
-        meals: [],
-      });
-      return;
-    }
+    if (req.query.mealType) filter.mealType = req.query.mealType;
+    if (req.query.category) filter.category = req.query.category;
+
+    const meals = await Meal.find(filter).skip(skip).limit(limit);
+    const totalMeals = await Meal.countDocuments(filter);
+
+    // if (!meals.length) {
+    //   res.status(200).json({
+    //     success: false,
+    //     message: "No meals created by Admin found",
+    //     meals: [],
+    //   });
+    //   return;
+    // }
     // ✅ 3. Return meals
+
     res.status(200).json({
       success: true,
       meals,
+      totalPages: Math.ceil(totalMeals / limit),
+      currentPage: page,
+      limit,
     });
+    
   } catch (error) {
     console.error("Error fetching admin meals:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
