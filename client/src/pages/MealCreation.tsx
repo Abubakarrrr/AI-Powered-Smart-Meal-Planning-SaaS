@@ -86,7 +86,7 @@ export default function MealCreationPage() {
       setSteps(meal.steps || []);
     }
   }, [meal, setValue]);
-
+ 
   const addIngredient = () => {
     if (inputValue.trim() !== "") {
       setIngredients([...ingredients, inputValue.trim()]);

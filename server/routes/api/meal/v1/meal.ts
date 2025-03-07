@@ -11,7 +11,7 @@ router.delete("/delete-meal/:mealId",verifyJWT,deleteMeal);
 router.post("/log-meal/:mealId",verifyJWT,logMeal);
 router.post("/delete-image",deleteImage);
 router.get("/getMealById/:mealId",getMealById);
-router.post("/planAdminCreatedMeal/:mealId",planAdminCreatedMeal);
+router.post("/planAdminCreatedMeal/:mealId",verifyJWT,planAdminCreatedMeal);
 
 //admin apis
 router.get("/get-all-meals",getAllMeals);

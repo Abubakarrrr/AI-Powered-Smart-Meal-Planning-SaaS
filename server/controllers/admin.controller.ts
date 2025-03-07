@@ -174,9 +174,12 @@ export const updateUser = asyncHandler(
 
 export const getAllMeals = async (req: Request, res: Response) => {
   try {
-
-    const meals = await Meal.find({ createdBy:"admin" });
-    if (!meals.length) {
+    const { mealType, category } = req.query;
+    let filter: any = { createdBy: "admin" };
+    if (mealType) filter.mealType = mealType;
+    if (category) filter.category = category;
+    const meals = await Meal.find(filter);
+    if (!meals.length) { 
        res.status(200).json({
         success: false,
         message: "No meals created by Admin found",

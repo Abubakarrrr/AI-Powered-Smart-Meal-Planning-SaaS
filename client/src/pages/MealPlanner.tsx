@@ -179,7 +179,7 @@ export default function MealPlanner() {
       );
       const data = await response.json();
       if (response.ok) {
-        await fetchMeals()
+        await fetchMeals();
         toast({
           title: "Success",
           description: isLogged
@@ -231,6 +231,7 @@ export default function MealPlanner() {
                   selected={date}
                   onSelect={handleDateSelect}
                   initialFocus
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} 
                 />
               </PopoverContent>
             </Popover>

@@ -83,14 +83,14 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
     await mealLog.save();
 
     // Add meal to user's meal array
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ success: "false", message: "User not found" });
-      return;
-    }
-    const id = newMeal._id as Schema.Types.ObjectId;
-    user.meals.push(id);
-    await user.save();
+    // const user = await User.findById(userId);
+    // if (!user) {
+    //   res.status(404).json({ success: "false", message: "User not found" });
+    //   return;
+    // }
+    // const id = newMeal._id as Schema.Types.ObjectId;
+    // user.meals.push(id);
+    // await user.save();
 
     res.status(201).json({
       success: true,
@@ -610,18 +610,21 @@ export const planAdminCreatedMeal = async (
     await mealLog.save();
 
     // Add meal to user's meal array
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ success: "false", message: "User not found" });
-      return;
-    }
-    const id = mealId as unknown as Schema.Types.ObjectId;
-    user.meals.push(id);
-    await user.save();
-    res.status(201).json({ success: true, message: "Meal planned successfully" });
+    // const user = await User.findById(userId);
+    // if (!user) {
+    //   res.status(404).json({ success: "false", message: "User not found" });
+    //   return;
+    // }
+    // const id = mealId as unknown as Schema.Types.ObjectId;
+    // user.meals.push(id);
+    // await user.save();
+
+    res
+      .status(201) 
+      .json({ success: true, message: "Meal planned successfully" });
   } catch (error) {
     console.log("Error fetching meals:", error);
-    res.status(500).json({ success:false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 

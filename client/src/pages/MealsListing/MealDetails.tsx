@@ -15,6 +15,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { useToast } from "@/hooks/use-toast";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -36,6 +37,7 @@ export interface Meal {
 export default function MealDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const {toast} = useToast();
   const [meal, setMeal] = useState<Meal | null>();
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -67,11 +69,37 @@ export default function MealDetails() {
     fetchMeal();
   }, [id]);
 
-  const handleScheduleMeal = () => {
+  const handleScheduleMeal =async () => {
     if (!selectedDate) {
       alert("Please select a date before scheduling.");
       return;
     }
+    const mealId = meal?._id;
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${BASE_URL}/api/meal/v1/planAdminCreatedMeal/${mealId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ date:selectedDate }),
+        }
+      );
+      const data = await response.json();
+      if (data) {
+        toast({
+          title: "Success",
+          description: "Meal scheduled successfully",
+        })
+        navigate(`/planner/${format(selectedDate, "yyyy-MM-dd")}`);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+    
     console.log("Meal scheduled on:", selectedDate);
     // Add API call to schedule the meal with `selectedDate`
   };
