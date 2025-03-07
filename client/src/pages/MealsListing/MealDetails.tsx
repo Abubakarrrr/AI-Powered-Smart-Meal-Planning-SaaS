@@ -11,6 +11,11 @@ import {
 } from "@/components/ui/carousel";
 import { ChevronLeft } from "lucide-react";
 import { Schema } from "mongoose";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface Meal {
@@ -27,11 +32,13 @@ export interface Meal {
   steps: string[];
   images: string[];
 }
+
 export default function MealDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [meal, setMeal] = useState<Meal | null>();
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   useEffect(() => {
     const fetchMeal = async () => {
@@ -60,6 +67,15 @@ export default function MealDetails() {
     fetchMeal();
   }, [id]);
 
+  const handleScheduleMeal = () => {
+    if (!selectedDate) {
+      alert("Please select a date before scheduling.");
+      return;
+    }
+    console.log("Meal scheduled on:", selectedDate);
+    // Add API call to schedule the meal with `selectedDate`
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -72,21 +88,46 @@ export default function MealDetails() {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">Meal not found</h2>
-        <Button onClick={() => navigate("/")}>Back to Meals</Button>
+        <Button onClick={() => navigate("/meals")}>Back to Meals</Button>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto py-8">
-      <Button
-        variant="ghost"
-        className="mb-6 pl-0 flex items-center gap-2"
-        onClick={() => navigate("/")}
-      >
-        <ChevronLeft size={16} />
-        Back to Meals
-      </Button>
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          variant="ghost"
+          className="pl-0 flex items-center gap-2"
+          onClick={() => navigate("/meals")}
+        >
+          <ChevronLeft size={16} />
+          Back to Meals
+        </Button>
+
+        <div className="flex items-center gap-4">
+          {/* Date Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <CalendarIcon size={16} />
+                {selectedDate ? format(selectedDate, "PPP") : "Pick a Date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} 
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Schedule Meal Button */}
+          <Button onClick={handleScheduleMeal}>Schedule Meal</Button>
+        </div>
+      </div>
 
       <div className="mb-8">
         <Carousel className="w-full">

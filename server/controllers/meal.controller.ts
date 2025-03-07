@@ -257,9 +257,9 @@ export const getDateWiseUserMeal = async (
     console.log(userMeals);
     const mealsWithDetails = userMeals.map((userMeal) => {
       if (userMeal.meal instanceof Meal) {
-        const meal = userMeal.meal
+        const meal = userMeal.meal;
         return {
-          ...meal.toObject(), 
+          ...meal.toObject(),
           isLogged: userMeal.isLogged,
           plannedDate: userMeal.plannedDate,
         };
@@ -368,7 +368,7 @@ export const logMeal = async (req: RequestWithUser, res: Response) => {
 
     res.status(200).json({
       success: true,
-      message: isLogged 
+      message: isLogged
         ? "Meal logged successfully"
         : "Meal unlogged successfully",
       mealLog,
@@ -581,6 +581,47 @@ export const getMealById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching meal:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const planAdminCreatedMeal = async (
+  req: RequestWithUser,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    const userId = req.user._id;
+    const { mealId } = req.params;
+    const { date } = req.body;
+    if (!date || !mealId) {
+      res
+        .status(400)
+        .json({ success: false, message: "Date or MealId is required" });
+      return;
+    }
+    const mealLog = new UserMeal({
+      user: userId,
+      meal: mealId,
+      plannedDate: date,
+    });
+    await mealLog.save();
+
+    // Add meal to user's meal array
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ success: "false", message: "User not found" });
+      return;
+    }
+    const id = mealId as unknown as Schema.Types.ObjectId;
+    user.meals.push(id);
+    await user.save();
+    res.status(201).json({ success: true, message: "Meal planned successfully" });
+  } catch (error) {
+    console.log("Error fetching meals:", error);
+    res.status(500).json({ success:false, message: "Internal server error" });
   }
 };
 

@@ -1,5 +1,5 @@
 import { getAllMeals } from "@controllers/admin.controller";
-import { createMeal,deleteMeal,getDateWiseUserMeal,updateMeal,logMeal, deleteImage, createAdminMeal, updateAdminMeal, deleteAdminMeal, getMealById } from "@controllers/meal.controller";
+import { createMeal,deleteMeal,getDateWiseUserMeal,updateMeal,logMeal, deleteImage, createAdminMeal, updateAdminMeal, deleteAdminMeal, getMealById, planAdminCreatedMeal } from "@controllers/meal.controller";
 import { verifyJWT } from "@middlewares/auth";
 import express from "express";
 const router = express.Router();
@@ -11,6 +11,7 @@ router.delete("/delete-meal/:mealId",verifyJWT,deleteMeal);
 router.post("/log-meal/:mealId",verifyJWT,logMeal);
 router.post("/delete-image",deleteImage);
 router.get("/getMealById/:mealId",getMealById);
+router.post("/planAdminCreatedMeal/:mealId",planAdminCreatedMeal);
 
 //admin apis
 router.get("/get-all-meals",getAllMeals);
