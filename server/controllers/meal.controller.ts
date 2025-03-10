@@ -8,7 +8,6 @@ import { OAuth2Client } from "google-auth-library";
 import { v2 as cloudinary } from "cloudinary";
 import axios from "axios";
 
-
 const CLIENT_ID = config.OAUTH_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
 
@@ -82,6 +81,7 @@ export const createMeal = async (req: RequestWithUser, res: Response) => {
       meal: newMeal._id,
       plannedDate: date,
     });
+
     await mealLog.save();
 
     // Add meal to user's meal array
@@ -565,7 +565,7 @@ export const deleteAdminMeal = async (req: RequestWithUser, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+//public listing page
 export const getMealById = async (req: Request, res: Response) => {
   try {
     const { mealId } = req.params;
@@ -585,7 +585,7 @@ export const getMealById = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// public listing
 export const planAdminCreatedMeal = async (
   req: RequestWithUser,
   res: Response
@@ -665,17 +665,62 @@ export const fetchRelevantMeals = async (
         preferences,
       }
     );
-    const recommendation = fastAPIResponse.data.recommendations
+    const recommendation = fastAPIResponse.data.recommendations;
     console.log(fastAPIResponse.data.recommendations);
     // const clear = JSON.stringify(fastAPIResponse.data.recommendations);
     // console.log(clear)
-    res.status(201).json({success:true,message:"fetch meals",recommendation})
+    res
+      .status(201)
+      .json({ success: true, message: "fetch meals", recommendation });
     return;
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+//get shopping list
+export const generateShoppingList = async (
+  req: RequestWithUser,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    const userId = req.user._id;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // ✅ 1. Fetch user meals for the given user and date
+    const userMeals = await UserMeal.find({
+      user: userId,
+      plannedDate: { $eq: today },
+    }).populate("meal");
+    console.log(userMeals);
+
+    let allIngredients = userMeals.map((userMeal) => {
+      if (userMeal.meal instanceof Meal) {
+        const meal = userMeal.meal;
+        const ingredients = meal.ingredients.map(ingredient => ingredient.toLowerCase());
+        return ingredients;
+      }
+    });
+    allIngredients =  [...new Set(allIngredients)];
+    // console.log(allIngredients) 
+  
+    res
+      .status(200)
+      .json({ success: true, message: "fetched shopping list ", allIngredients });
+
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, message: "Internal server error" });
+  }
+};
+
 
 //created by admin , role user delete from user meals array
 //created by admin , role admin delete from schema

@@ -29,6 +29,7 @@ import { useAuthStore } from "./store/authStore";
 import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import PlanWithAi from "./pages/PlanWithAi";
+import ShoppingList from "./pages/Shopping";
 
 function App() {
   const {checkAuth, isCheckingAuth, user,onlineUsers} = useAuthStore();
@@ -91,6 +92,7 @@ function App() {
           <Route path="/meal/:id" element={<MealDetails />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/plan-with-ai" element={<PlanWithAi />} />
+          <Route path="/shopping" element={<ShoppingList />} />
           <Route path="*" element={<PageNotFound />} />
 
           {/* Admin protected routes  */}
