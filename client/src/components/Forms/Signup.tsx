@@ -43,17 +43,14 @@ const Signup: React.FC = () => {
 
   const handleFormSubmit = async (data: SignupFormData) => {
     try {
-      const apiData = await triggerFetch(
-        "http://localhost:3000/api/auth/v1/signup",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const apiData = await triggerFetch(`${BASE_URL}/api/auth/v1/signup`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
       if (!apiData) {
         toast({
           title: "Failure",

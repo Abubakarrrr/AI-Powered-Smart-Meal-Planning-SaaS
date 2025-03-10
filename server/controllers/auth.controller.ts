@@ -138,64 +138,71 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
 // login controller
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  // Validate input
-  if (!email || !password) {
-    // throw new ApiError(400, "Email and password are required");
-    res
-      .status(400)
-      .json({ success: false, message: "Email and password are required" });
-  }
+    // Validate input
+    if (!email || !password) {
+      // throw new ApiError(400, "Email and password are required");
+      res
+        .status(400)
+        .json({ success: false, message: "Email and password are required" });
+        return;
+    }
 
-  // Find user by email
-  const user = await User.findOne({ email });
-  if (!user) {
-    // throw new ApiError(401, "Invalid credentials");
-    res.status(400).json({ success: false, message: "Invalid credentials" });
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      // throw new ApiError(401, "Invalid credentials");
+      res.status(400).json({ success: false, message: "Invalid credentials" });
+      return;
+    }
+    if (user.status == UserStatus.BLOCKED) {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: "Your account is blocked, contact support",
+        });
+      return;
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password!);
+    if (!isMatch) {
+      // throw new ApiError(401, "Invalid credentials");
+      res.status(400).json({ success: false, message: "Invalid credentials" });
+      return;
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+      user._id as Mongoose.Types.ObjectId
+    );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false, // Use HTTPS in production
+      sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, // Use HTTPS in production
+      sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "User logged In Successfully",
+      user,
+    });
     return;
+  } catch (error) {
+    console.log("Error in login controller", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
-  if (user.status == UserStatus.BLOCKED) {
-    res
-      .status(400)
-      .json({ success: false, message: "Your account is blocked, contact support" });
-    return;
-  }
-
-  // Compare password
-  const isMatch = await bcrypt.compare(password, user.password!);
-  if (!isMatch) {
-    // throw new ApiError(401, "Invalid credentials");
-    res.status(400).json({ success: false, message: "Invalid credentials" });
-  }
-
-  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
-    user._id as Mongoose.Types.ObjectId
-  );
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: false, // Use HTTPS in production
-    sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: false, // Use HTTPS in production
-    sameSite: "lax", // Use 'lax' for cross-origin navigation supportsameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        user,
-      },
-      "User logged in successfully"
-    )
-  );
 });
 
 // logout controller
@@ -505,5 +512,19 @@ export const resetPassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.log("error in resetPassword");
     res.status(400).json({ success: false, message: (error as Error).message });
+  }
+};
+
+export const checkAuth = async (req: RequestWithUser, res: Response) => {
+  try {
+    if(req.user){
+      res.status(201).json({success:true,message:"User found",user:req.user});
+    }
+    else{
+      res.status(201).json({ success: false, message: "User not found" });
+    }
+  } catch (error) {
+    console.log("Error in checkAuth controller", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Schema } from "mongoose";
 
 export interface Meal {
-  _id: Schema.Types.ObjectId;
+  _id?: Schema.Types.ObjectId;
   title: string;
   description: string;
   category: string;
@@ -20,7 +20,7 @@ export interface Meal {
   fats: number;
   ingredients: string[];
   steps: string[];
-  images: string[];
+  images?: string[];
 }
 
 interface MealCardProps {
@@ -33,7 +33,7 @@ export default function MealCard({ meal }: MealCardProps) {
       <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <div className="aspect-video w-full overflow-hidden">
           <img
-            src={meal.images[0] || "/placeholder.svg"}
+            src={meal.images?.[0] || "/placeholder.svg"}
             alt={meal.title}
             className="w-full h-full object-cover"
           />

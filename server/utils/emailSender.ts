@@ -33,6 +33,8 @@ const emailSender = async (email: string, title: string, body: string) => {
     throw error;
   }
 };
+
+
 export async function sendVerificationEmail(email: string, otp: string) {
   try {
     const mailResponse = await emailSender(

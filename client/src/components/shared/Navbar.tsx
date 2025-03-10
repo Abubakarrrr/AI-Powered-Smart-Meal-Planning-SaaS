@@ -8,15 +8,18 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Avatar from "./AvatarDropdown";
 // import { DialogTitle } from "../ui/dialog";
 import { useAuthStore } from "@/store/authStore";
+import { format } from "date-fns";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const toggleSidebar = () => setIsOpen(!isOpen);
   const { user, isAuthenticated } = useAuthStore();
+
+ 
 
   return (
     <nav className="border-b font-primary">
@@ -42,7 +45,7 @@ export default function Navbar() {
           <DesktopNav />
         </div>
         <div className="flex items-center space-x-2 ml-auto">
-          {!isAuthenticated && (
+          {!user && (
             <div className="flex gap-x-2 items-center">
               <div className="space-x-2 max-sm:hidden">
                 <Link to="/login">
@@ -56,7 +59,7 @@ export default function Navbar() {
               </div>
             </div>
           )}
-          {isAuthenticated && <Avatar />}
+          {user && <Avatar />}
         </div>
       </div>
     </nav>
@@ -74,6 +77,11 @@ function Logo() {
 function DesktopNav() {
   const location = useLocation();
   const isActive = (path: any) => location.pathname === path;
+  const navigate = useNavigate();
+  const handleOpenMealPlanner = () => {
+    const today = format(new Date(), "yyyy-MM-dd"); 
+    navigate(`/planner/${today}`); 
+  };
   return (
     <NavigationMenu>
       <NavigationMenuList>
@@ -88,14 +96,14 @@ function DesktopNav() {
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link to="/about" className={navigationMenuTriggerStyle()}>
-            About
+          <Link to="/meals" className={navigationMenuTriggerStyle()}>
+            Meals
           </Link>
         </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link to="/services" className={navigationMenuTriggerStyle()}>
-            Services
-          </Link>
+        <NavigationMenuItem onClick={handleOpenMealPlanner} className="hover:cursor-pointer">
+          <div className={navigationMenuTriggerStyle()}>
+            Planner
+          </div>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <Link to="/contact" className={navigationMenuTriggerStyle()}>

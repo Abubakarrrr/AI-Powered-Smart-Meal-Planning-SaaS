@@ -6,6 +6,8 @@ import UserMeal from "@models/UserMeal";
 import config from "@config/config";
 import { OAuth2Client } from "google-auth-library";
 import { v2 as cloudinary } from "cloudinary";
+import axios from "axios";
+
 
 const CLIENT_ID = config.OAUTH_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
@@ -620,10 +622,57 @@ export const planAdminCreatedMeal = async (
     // await user.save();
 
     res
-      .status(201) 
+      .status(201)
       .json({ success: true, message: "Meal planned successfully" });
   } catch (error) {
     console.log("Error fetching meals:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+//ai related
+export const fetchRelevantMeals = async (
+  req: RequestWithUser,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    const { preferences } = req.body;
+    // console.log("preferences",preferences)
+    if (!preferences) {
+      res
+        .status(404)
+        .json({ success: false, message: "No preferences are given" });
+      return;
+    }
+    const user = await User.findById(req.user._id).populate("userProfileId");
+    if (!user) {
+      res
+        .status(404)
+        .json({ success: false, message: "First complete your profile" });
+      return;
+    }
+    // console.log("user_info",user?.userProfileId);
+    const user_info = user.userProfileId;
+    // Send request to FastAPI
+    const fastAPIResponse = await axios.post(
+      "http://0.0.0.0:8000/fetch-relevant-meals",
+      {
+        user_info,
+        preferences,
+      }
+    );
+    const recommendation = fastAPIResponse.data.recommendations
+    console.log(fastAPIResponse.data.recommendations);
+    // const clear = JSON.stringify(fastAPIResponse.data.recommendations);
+    // console.log(clear)
+    res.status(201).json({success:true,message:"fetch meals",recommendation})
+    return;
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

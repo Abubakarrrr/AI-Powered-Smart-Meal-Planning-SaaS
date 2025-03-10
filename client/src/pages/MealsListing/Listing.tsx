@@ -158,12 +158,12 @@ export default function MealsList() {
           <label className="text-sm font-medium">Meal Category</label>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-42 justify-between">
+              <Button variant="outline" className="w-48 justify-between">
                 {selectedCategory ? selectedCategory : "Select Meal Category"}
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-42">
+            <DropdownMenuContent className="w-48">
               {mealCategories.map((category) => (
                 <DropdownMenuItem
                   key={category}

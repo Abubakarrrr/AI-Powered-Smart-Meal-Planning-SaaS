@@ -32,34 +32,23 @@ const Login: React.FC = () => {
   });
   const { setAuth } = useAuthStore.getState();
 
-  const { loading, error, triggerFetch } = useFetch();
-
   const handleLoginSubmit = async (data: LoginFormData) => {
     try {
-      const apiData = await triggerFetch(
-        "http://localhost:3000/api/auth/v1/login",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-      if (!apiData) {
-        toast({
-          title: "Failure",
-          description: error,
-        });
-      } else {
-        setAuth(apiData.user);
-        navigate("/");
-        toast({
-          title: "Success",
-          description: "Login successfully",
-        });
-      }
+      const response = await fetch(`${BASE_URL}/api/auth/v1/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      const apiData = await response.json();
+      navigate("/");
+      toast({
+        title: "Success",
+        description: "Login successfully",
+      });
+      setAuth(apiData.user);
     } catch (error) {
       console.log(error);
       toast({
@@ -150,8 +139,9 @@ const Login: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button type="submit" className="w-full">
+              {/* {loading ? "Logging in..." : "Login"} */}
+              Login
             </Button>
 
             <p className="text-sm">

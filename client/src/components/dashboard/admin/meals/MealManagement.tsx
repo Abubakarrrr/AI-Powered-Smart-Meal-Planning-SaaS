@@ -67,6 +67,8 @@ export default function MealsManagement() {
     }
   };
 
+  
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-8">

@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
+/* @plugin "daisyui"; */
 
+@plugin "daisyui" {
+  themes: light , cupcake;
+}
 @custom-variant dark (&:is(.dark *));
 
 :root {

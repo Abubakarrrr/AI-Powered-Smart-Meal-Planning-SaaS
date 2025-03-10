@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export enum MealType {
-  Breakfast = "Breakfast",
-  Lunch = "Lunch",
-  Dinner = "Dinner",
-  Snacks = "Snacks",
+  Breakfast = "breakfast",
+  Lunch = "lunch",
+  Dinner = "dinner",
+  Snacks = "snacks",
 }
 export enum CreatedBy {
   Admin = "admin",

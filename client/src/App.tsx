@@ -15,7 +15,7 @@ import RedirectAuthenticatedUser from "@/utils/RedirectAuthenticatedUser";
 import PageNotFound from "@/components/shared/PageNotFound";
 // import AdminProtectedRoute from "./utils/AdminProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
-import UserManagement from "@/components/dashboard/admin/users/UserManagement"
+import UserManagement from "@/components/dashboard/admin/users/UserManagement";
 import UserProfileForm from "./pages/Goals";
 // import AdminProtectedRoute from "./utils/AdminProtectedRoute";
 import MealCreationPage from "./pages/MealCreation";
@@ -24,8 +24,26 @@ import MealsManagement from "@/components/dashboard/admin/meals/MealManagement";
 import AddMealPage from "./components/dashboard/admin/meals/AddMealPage";
 import MealsList from "./pages/MealsListing/Listing";
 import MealDetails from "./pages/MealsListing/MealDetails";
+import ChatPage from "./pages/chat/Chat";
+import { useAuthStore } from "./store/authStore";
+import { Loader } from "lucide-react";
+import { useEffect } from "react";
+import PlanWithAi from "./pages/PlanWithAi";
 
 function App() {
+  const {checkAuth, isCheckingAuth, user,onlineUsers} = useAuthStore();
+  console.log(onlineUsers)
+  useEffect(() => {
+    checkAuth();
+}, [checkAuth]);  
+  
+  if (isCheckingAuth && !user)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+
   return (
     <>
       <div className="font-primary">
@@ -44,7 +62,7 @@ function App() {
             path="/login"
             element={
               // <RedirectAuthenticatedUser>
-                <Login />
+              <Login />
               // </RedirectAuthenticatedUser>
             }
           />
@@ -52,7 +70,7 @@ function App() {
             path="/profile"
             element={
               // <ProtectedRoute>
-                <Profile />
+              <Profile />
               // </ProtectedRoute>
             }
           />
@@ -71,15 +89,17 @@ function App() {
           <Route path="/planner/:date" element={<MealPlanner />} />
           <Route path="/meals" element={<MealsList />} />
           <Route path="/meal/:id" element={<MealDetails />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/plan-with-ai" element={<PlanWithAi />} />
           <Route path="*" element={<PageNotFound />} />
 
           {/* Admin protected routes  */}
-        
+
           <Route
             path="/admin"
             element={
               // <AdminProtectedRoute>
-                <AdminLayout />
+              <AdminLayout />
               // </AdminProtectedRoute>
             }
           >
@@ -87,7 +107,7 @@ function App() {
               path="users"
               element={
                 // <AdminProtectedRoute>
-                  <UserManagement />
+                <UserManagement />
                 //  </AdminProtectedRoute>
               }
             />
@@ -95,32 +115,30 @@ function App() {
               path="meals"
               element={
                 // <AdminProtectedRoute>
-                  <MealsManagement />
+                <MealsManagement />
                 //  </AdminProtectedRoute>
               }
             />
-             <Route
+            <Route
               path="meals/add"
               element={
                 // <AdminProtectedRoute>
-                  <AddMealPage />
+                <AddMealPage />
                 //  </AdminProtectedRoute>
               }
             />
-               <Route
+            <Route
               path="meals/edit"
               element={
                 // <AdminProtectedRoute>
-                  <AddMealPage />
+                <AddMealPage />
                 //  </AdminProtectedRoute>
               }
             />
           </Route>
-          
-
         </Routes>
       </div>
-  </>
+    </>
   );
 }
 
