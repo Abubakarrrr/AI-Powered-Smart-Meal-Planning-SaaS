@@ -93,7 +93,7 @@ export const sendMessages = async (req: RequestWithUser, res: Response) => {
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }
-
+  
 
     res.status(201).json({
       success: true,

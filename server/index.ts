@@ -8,9 +8,9 @@ import adminRoute from "@routes/api/admin/v1/admin"
 import userRoute from "@routes/api/user/v1/user"
 import messageRoute from "@routes/api/message/v1/message"
 import mealRoute from "@routes/api/meal/v1/meal"
+import paymentRoute from "@routes/api/payment/v1/payment"
 import config from "@config/config";
 import {app,server} from '@lib/socket'
-import { seedDatabase } from "seeds/user.seed";
 
 dotenv.config();
 
@@ -32,6 +32,7 @@ app.use("/api/admin/v1", adminRoute);
 app.use("/api/user/v1", userRoute);
 app.use("/api/meal/v1", mealRoute);
 app.use("/api/messages/v1", messageRoute);
+app.use("/api/webhook", paymentRoute);
 
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

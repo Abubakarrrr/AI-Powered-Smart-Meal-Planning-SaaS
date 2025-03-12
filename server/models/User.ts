@@ -27,7 +27,8 @@ export interface IUser extends Document {
   generateAccessToken(): string;
   generateRefreshToken(): string;
   userProfileId?: Schema.Types.ObjectId;
-  meals: Schema.Types.ObjectId[] ;
+  meals: Schema.Types.ObjectId[];
+  subscription?: Schema.Types.ObjectId;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
@@ -57,6 +58,7 @@ const UserSchema: Schema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: "UserProfile",
     },
+    subscription: { type: Schema.Types.ObjectId, ref: "Subscription" },
   },
   { timestamps: true }
 );
