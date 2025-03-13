@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const plans = [
   {
@@ -14,7 +14,7 @@ const plans = [
       "Limited meal tracking",
     ],
     buttonText: "Get Started",
-    link: "https://buy.stripe.com/test_9AQdUW3ymbeG2Nq6oo",
+    priceId: "price_1R28kmFeQxKeW8MZP5VgzaZW",
   },
   {
     name: "Pro",
@@ -26,7 +26,7 @@ const plans = [
       "Access to community forum",
     ],
     buttonText: "Subscribe Now",
-    link: "https://buy.stripe.com/test_28o18aed02IabjWbIJ",
+    priceId: "price_1R28lEFeQxKeW8MZCQpl6QDL",
   },
   {
     name: "Premium",
@@ -39,12 +39,34 @@ const plans = [
       "Priority support & notifications",
     ],
     buttonText: "Subscribe Now",
-    link: "https://buy.stripe.com/test_4gw0466Ky4Qiew89AC",
+    priceId: "price_1R28ldFeQxKeW8MZ4BMH93mE",
   },
 ];
 
 export default function SubscriptionPlans() {
-    const {user}=useAuthStore();
+  const { user } = useAuthStore();
+
+  const handleSubscribe = async (priceId: string) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/payment/v1/create-checkout-session`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            priceId: priceId,
+          }),
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+      if (data.url) window.location.href = data.url; // Redirect to Stripe
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
@@ -77,11 +99,12 @@ export default function SubscriptionPlans() {
               </CardContent>
             </div>
             <div className="flex justify-center mt-4">
-              <Link to={`${plan.link}?prefilled_email=${user?.email}`}>
-                <Button className="text-white bg-blue-600 hover:bg-blue-700">
-                  {plan.buttonText}
-                </Button> 
-              </Link>
+              <Button
+                className="text-white bg-blue-600 hover:bg-blue-700"
+                onClick={() => handleSubscribe(plan.priceId)}
+              >
+                {plan.buttonText}
+              </Button>
             </div>
           </Card>
         ))}

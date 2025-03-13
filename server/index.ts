@@ -11,6 +11,7 @@ import mealRoute from "@routes/api/meal/v1/meal"
 import paymentRoute from "@routes/api/payment/v1/payment"
 import config from "@config/config";
 import {app,server} from '@lib/socket'
+import { webhook } from "@controllers/payment.controller";
 
 dotenv.config();
 
@@ -24,15 +25,16 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
 app.use(cookieParser());
+app.post("/webhook/stripe", express.raw({ type: "application/json" }),webhook);
+app.use(express.json());
 
 app.use("/api/auth/v1", authRoute);
 app.use("/api/admin/v1", adminRoute);
 app.use("/api/user/v1", userRoute);
+app.use("/api/payment/v1", paymentRoute);
 app.use("/api/meal/v1", mealRoute);
 app.use("/api/messages/v1", messageRoute);
-app.use("/api/webhook", paymentRoute);
 
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

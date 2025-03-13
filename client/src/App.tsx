@@ -95,7 +95,7 @@ function App() {
           <Route path="/plan-with-ai" element={<PlanWithAi />} />
           <Route path="/shopping" element={<ShoppingList />} />
           <Route path="/subscription" element={<SubscriptionPlans />} />
-          <Route path="*" element={<PageNotFound />} />
+          {/* <Route path="*" element={<PageNotFound />} /> */}
 
           {/* Admin protected routes  */}
 

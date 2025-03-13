@@ -28,11 +28,10 @@ export interface IUser extends Document {
   generateRefreshToken(): string;
   userProfileId?: Schema.Types.ObjectId;
   meals: Schema.Types.ObjectId[];
-  subscription?: Schema.Types.ObjectId;
+  stripeCustomerId: String;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
-
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -58,7 +57,7 @@ const UserSchema: Schema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: "UserProfile",
     },
-    subscription: { type: Schema.Types.ObjectId, ref: "Subscription" },
+    stripeCustomerId: { type: String, default: null },
   },
   { timestamps: true }
 );

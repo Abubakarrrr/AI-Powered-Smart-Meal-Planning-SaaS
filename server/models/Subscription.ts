@@ -4,7 +4,7 @@ interface ISubscription extends Document {
   userId: Schema.Types.ObjectId;
   stripeSubscriptionId: string;
   status: string;
-  plan: string;
+  planId: string;
   current_period_start: Date;
   current_period_end: Date;
 }
@@ -13,7 +13,7 @@ const SubscriptionSchema = new Schema<ISubscription>({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   stripeSubscriptionId: { type: String, required: true },
   status: { type: String, required: true, enum: ["active", "canceled", "past_due", "trialing", "unpaid"] },
-  plan: { type: String, required: true },
+  planId: { type: String, required: true },
   current_period_start: { type: Date, required: true },
   current_period_end: { type: Date, required: true },
 });
