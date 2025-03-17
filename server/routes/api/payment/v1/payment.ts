@@ -8,4 +8,4 @@ const router = express.Router();
 router.post("/create-checkout-session",verifyJWT,checkout);
 router.get("/get-subscription-status",verifyJWT,getSubscriptionStatus);
 
-export default router
+export default router 

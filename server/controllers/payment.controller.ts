@@ -38,12 +38,43 @@ export const webhook = async (req: Request, res: Response) => {
       await User.findByIdAndUpdate(userId, {
         stripeCustomerId: session.customer,
       });
-    }
+    } 
+    else if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object;
+      const userId = subscription.metadata.userId;
+
+      await Subscription.findOneAndUpdate(
+        { userId },
+        {
+          status: subscription.status,
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ),
+          current_period_end: new Date(subscription.current_period_end * 1000),
+          planId: subscription.items.data[0].price.id,
+        }
+      );
+    } 
     else if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object;
       const userId = subscription.metadata.userId;
-      await Subscription.findOneAndUpdate({ userId }, { status:subscription.status });
+      await Subscription.findOneAndUpdate(
+        { userId },
+        { status: subscription.status }
+      );
+    } 
+    else if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object;
+      const subscriptionId = invoice.subscription;
+
+      await Subscription.findOneAndUpdate(
+        { stripeSubscriptionId: subscriptionId },
+        { status: "past_due" }
+      );
     }
+   
+
+
     res.json({ received: true });
   } catch (error) {
     console.error("Webhook error:", error);
@@ -78,6 +109,7 @@ export const checkout = async (req: RequestWithUser, res: Response) => {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
+      customer_email: user.email,
       line_items: [{ price: priceId, quantity: 1 }],
       // success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       success_url: `${process.env.CLIENT_URL}`,

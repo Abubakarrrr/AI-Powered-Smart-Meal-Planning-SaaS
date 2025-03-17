@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import ButtonCustomerPortal from "@/components/payments/ButtonCustomerPortal";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 const plans = [
@@ -72,6 +73,7 @@ export default function SubscriptionPlans() {
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
         Choose Your Plan
       </h2>
+      <ButtonCustomerPortal/>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
         {plans.map((plan, index) => (
           <Card
