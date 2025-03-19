@@ -31,14 +31,18 @@ import { useEffect } from "react";
 import PlanWithAi from "./pages/PlanWithAi";
 import ShoppingList from "./pages/Shopping";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
+import ForumLayout from "@/components/Forum/ForumLayout";
+import { PostsList } from "./components/Forum/PostsList";
+import { CreatePostForm } from "./components/Forum/CreateNewPost";
+import { PostDetail } from "./components/Forum/PostDetails";
 
 function App() {
-  const {checkAuth, isCheckingAuth, user,onlineUsers} = useAuthStore();
-  console.log(onlineUsers)
+  const { checkAuth, isCheckingAuth, user, onlineUsers } = useAuthStore();
+  console.log(onlineUsers);
   useEffect(() => {
     checkAuth();
-}, [checkAuth]);  
-  
+  }, [checkAuth]);
+
   if (isCheckingAuth && !user)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -95,6 +99,31 @@ function App() {
           <Route path="/plan-with-ai" element={<PlanWithAi />} />
           <Route path="/shopping" element={<ShoppingList />} />
           <Route path="/subscription" element={<SubscriptionPlans />} />
+          <Route
+            path="/forum"
+            element={
+              <ForumLayout>
+                <PostsList />
+              </ForumLayout>
+            }
+          />
+          <Route
+            path="/forum/new"
+            element={
+              <ForumLayout>
+                <CreatePostForm />
+              </ForumLayout>
+            }
+          />
+           <Route
+            path="/forum/post/:id"
+            element={
+              <ForumLayout>
+                <PostDetail />
+              </ForumLayout>
+            }
+          />
+          {/* <Route path="/forum/new" element={< />} /> */}
           {/* <Route path="*" element={<PageNotFound />} /> */}
 
           {/* Admin protected routes  */}

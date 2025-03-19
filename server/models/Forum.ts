@@ -33,13 +33,12 @@ export const Post = mongoose.model<IPost>("Post", postSchema);
 
 export interface IComment extends Document {
     content: string;
-    author: Types.ObjectId; // Reference to User
-    post: Types.ObjectId; // Reference to Post
-    likes: Types.ObjectId[]; // Users who liked the comment
+    author: Types.ObjectId; 
+    post: Types.ObjectId; 
+    likes: Types.ObjectId[]; 
     createdAt: Date;
   }
   
-  // Mongoose Schema for Comment
   const commentSchema = new Schema<IComment>({
     content: { type: String, required: true },
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
