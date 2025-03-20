@@ -12,9 +12,6 @@ const NutriotionistProtectedRoute = ({ children }:Props) => {
   if (!isAuthenticated || user?.role !== "nutritionist") {
     return <Navigate to="/login" replace />;
   }
-  if (!user.isVerified) {
-    return <Navigate to="/verify-email" replace />;
-  }
   return children;
 };
 

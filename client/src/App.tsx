@@ -35,6 +35,8 @@ import ForumLayout from "@/components/Forum/ForumLayout";
 import { PostsList } from "./components/Forum/PostsList";
 import { CreatePostForm } from "./components/Forum/CreateNewPost";
 import { PostDetail } from "./components/Forum/PostDetails";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import PricingSection from "./pages/Subscription";
 
 function App() {
   const { checkAuth, isCheckingAuth, user, onlineUsers } = useAuthStore();
@@ -67,17 +69,17 @@ function App() {
           <Route
             path="/login"
             element={
-              // <RedirectAuthenticatedUser>
+              <RedirectAuthenticatedUser>
               <Login />
-              // </RedirectAuthenticatedUser>
+               </RedirectAuthenticatedUser>
             }
           />
           <Route
             path="/profile"
             element={
-              // <ProtectedRoute>
+               <ProtectedRoute>
               <Profile />
-              // </ProtectedRoute>
+               </ProtectedRoute>
             }
           />
           <Route
@@ -86,7 +88,7 @@ function App() {
               <RedirectAuthenticatedUser>
                 <EmailVerify />
               </RedirectAuthenticatedUser>
-            }
+          }
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
@@ -98,7 +100,7 @@ function App() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/plan-with-ai" element={<PlanWithAi />} />
           <Route path="/shopping" element={<ShoppingList />} />
-          <Route path="/subscription" element={<SubscriptionPlans />} />
+          <Route path="/subscription" element={<PricingSection />} />
           <Route
             path="/forum"
             element={

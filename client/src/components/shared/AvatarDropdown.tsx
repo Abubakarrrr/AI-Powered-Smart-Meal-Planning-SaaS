@@ -42,8 +42,8 @@ export default function AvatarDropdown() {
       });
     }
   };
-  // const dashboardLink =
-  //   user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
+  const dashboardLink =
+    user?.role === "admin" ? "/admin/users":"";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -59,9 +59,9 @@ export default function AvatarDropdown() {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* <DropdownMenuItem>
-          <Link to="">Dashboard</Link>
-        </DropdownMenuItem> */}
+        <DropdownMenuItem>
+          <Link to={dashboardLink}>Dashboard</Link>
+        </DropdownMenuItem>
         <Link to="/profile">
           <DropdownMenuItem>Profile</DropdownMenuItem>
         </Link>
