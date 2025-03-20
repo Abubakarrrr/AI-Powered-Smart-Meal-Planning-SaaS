@@ -39,7 +39,7 @@ const mealSchema = z.object({
   protein: z.coerce.number().min(0),
   carbs: z.coerce.number().min(0),
   fats: z.coerce.number().min(0),
-  mealType: z.enum(["Breakfast", "Lunch", "Dinner", "Snacks"]),
+  mealType: z.enum(["breakfast", "lunch", "dinner", "snacks"]),
 });
 
 type MealFormData = z.infer<typeof mealSchema>;
@@ -62,7 +62,7 @@ export default function MealCreationPage() {
       protein: 0,
       carbs: 0,
       fats: 0,
-      mealType: "Breakfast",
+      mealType: "breakfast",
     },
   });
 
@@ -140,6 +140,7 @@ export default function MealCreationPage() {
             ? "Meal updated successfully."
             : "Meal created successfully.",
         });
+        navigate("/admin/meals")
       } else {
         toast({
           title: "Error",
@@ -275,7 +276,7 @@ export default function MealCreationPage() {
                 />
               </SelectTrigger>
               <SelectContent>
-                {["Breakfast", "Lunch", "Dinner", "Snacks"].map((type) => (
+                {["breakfast", "lunch", "dinner", "snacks"].map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>

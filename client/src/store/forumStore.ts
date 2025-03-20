@@ -153,7 +153,7 @@ export const useForumStore = create<ForumState>((set, get) => ({
   toggleLikePost: async (postId: string) => {
     try {
       const response = await fetch(`${API_URL}/api/forum/v1/toggle-like/${postId}`, {
-        method: "POST",
+        method: "POST", 
         credentials:"include",
         headers: {
           "Content-Type": "application/json",
@@ -196,7 +196,7 @@ export const useForumStore = create<ForumState>((set, get) => ({
           currentPost: updatedCurrentPost,
         };
       });
-      
+
     } catch (error) {
       set({ error: error as Error["message"] });
     }

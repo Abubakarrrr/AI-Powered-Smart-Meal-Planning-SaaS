@@ -124,7 +124,7 @@ function App() {
             }
           />
           {/* <Route path="/forum/new" element={< />} /> */}
-          {/* <Route path="*" element={<PageNotFound />} /> */}
+          <Route path="*" element={<PageNotFound />} />
 
           {/* Admin protected routes  */}
 

@@ -106,8 +106,13 @@ function DesktopNav() {
           </div>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link to="/contact" className={navigationMenuTriggerStyle()}>
-            Contact
+          <Link to="/forum" className={navigationMenuTriggerStyle()}>
+            Forum
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <Link to="/chat" className={navigationMenuTriggerStyle()}>
+            Chat
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>
@@ -134,9 +139,14 @@ function MobileNav({ closeSidebar }: any) {
             Services
           </Button>
         </Link>
-        <Link to="/contact" onClick={closeSidebar}>
+        <Link to="/chat" onClick={closeSidebar}>
           <Button variant="ghost" className="w-full justify-start">
-            Contact Us
+             Chat
+          </Button>
+        </Link>
+        <Link to="/forum" onClick={closeSidebar}>
+          <Button variant="ghost" className="w-full justify-start">
+             Forum
           </Button>
         </Link>
       </div>
