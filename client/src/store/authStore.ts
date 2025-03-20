@@ -1,88 +1,94 @@
 import { create } from "zustand";
-import axios from "axios";
+import { persist } from "zustand/middleware";
+import { io, Socket } from "socket.io-client";
 
-// Define API URL
-const API_URL = "http://localhost:3000/api/auth";
-axios.defaults.withCredentials = true;
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 interface User {
-  id: string;
+  _id: string;
   email: string;
   name: string;
-  role: "user" | "nutritionist";
+  avatar: string | undefined;
+  role: "user" | "nutritionist" | "admin";
 }
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-
-  // Signup function
-  signup: (email: string, name: string, password: string, role: "user" | "nutritionist") => Promise<void>;
-
-  // Login function
-  login: (email: string, password: string) => Promise<void>;
-
-  // Logout function
-  logout: () => void;
+  isCheckingAuth: boolean;
+  setAuth: (user: User) => void;
+  clearAuth: () => void;
+  setAvatar: (user: User | null) => void;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
+  checkAuth: () => Promise<void>;
+  onlineUsers: string[];
 }
 
-// Zustand Store Implementation
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
+// Store socket instance outside Zustand to prevent circular references
+export let socket: Socket | null = null;
 
-  signup: async (email, name, password, role) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/signup`, {
-        email,
-        password,
-        name,
-        role,
-      });
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isAuthenticated: false,
+      onlineUsers: [],
+      isCheckingAuth: true,
 
-      set({
-        user: response.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || "Error signing up",
-      });
-      throw error;
-    }
-  },
+      checkAuth: async () => {
+        try {
+          const response = await fetch(`${BASE_URL}/api/auth/v1/check-auth`, {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await response.json();
+          if (data.success) {
+            set({ user: data.user });
+            get().connectSocket();
+          }
+    } catch (error) {
+          console.log("Error in checkAuth:", error);
+          set({ user: null });
+        } finally {
+          set({ isCheckingAuth: false });
+        }
+      },
 
-  // Login function
-  login: async (email, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post<{ user: User }>(`${API_URL}/login`, {
-        email,
-        password,
-      });
+      setAvatar: (user) => set({ user }),
+      //login
+      setAuth: (user) => {
+        set({ user, isAuthenticated: true });
+        get().connectSocket();
+      },
+      //logout
+      clearAuth: () => {
+        set({ user: null, isAuthenticated: false });
+        get().disconnectSocket();
+      },
 
-      set({
-        user: response.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || "Invalid credentials",
-      });
-      throw error;
-    }
-  },
+      connectSocket: () => {
+        const { user } = get();
+        if (!user || (socket && socket.connected)) return;
 
-  // Logout function
-  logout: () => {
-    set({ user: null, isAuthenticated: false });
-  },
-}));
+        socket = io("http://localhost:3001", {
+          query: {
+            userId: user._id,
+          },
+        });
+
+        socket.on("getOnlineUsers", (userIds) => {
+          set({ onlineUsers: userIds });
+        });
+      },
+
+      disconnectSocket: () => {
+        if (socket) {
+          socket.disconnect();
+        }
+      },
+    }),
+    { name: "auth-store" }
+  )
+);
