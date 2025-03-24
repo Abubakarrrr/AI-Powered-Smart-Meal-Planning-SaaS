@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Navigate, useNavigate } from "react-router"
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Define the form schema with Zod
@@ -80,6 +81,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 export default function UserProfileForm() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [exclusions, setExclusions] = useState<string[]>([])
   const [exclusionInput, setExclusionInput] = useState("")
@@ -123,6 +125,7 @@ export default function UserProfileForm() {
       });
       const data = await res.json();
       console.log(data)
+      navigate('/')
     } catch (error) {
       console.log(error)
     }

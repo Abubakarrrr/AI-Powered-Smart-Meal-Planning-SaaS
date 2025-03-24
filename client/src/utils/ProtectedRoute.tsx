@@ -6,7 +6,7 @@ type Props = {
   children: ReactNode;
 };
 const ProtectedRoute = ({ children }:Props) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

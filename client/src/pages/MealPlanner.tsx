@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Link } from "react-router-dom";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export enum MealType {
@@ -43,6 +44,7 @@ interface Meal {
   ingredients: string[];
   steps: string[];
   category: string;
+  images?: string[];
   calories: number;
   protein: number;
   carbs: number;
@@ -231,7 +233,9 @@ export default function MealPlanner() {
                   selected={date}
                   onSelect={handleDateSelect}
                   initialFocus
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} 
+                  disabled={(date) =>
+                    date < new Date(new Date().setHours(0, 0, 0, 0))
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -307,10 +311,25 @@ export default function MealPlanner() {
                   </div>
                 </div>
 
-                <h2 className="text-3xl font-bold text-blue-600">
-                  {meal.title}
-                </h2>
-                <p className="mt-2 text-gray-700">{meal.description}</p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <Link to={`/meal/${meal._id}`} className="hover:underline">
+                      <h2 className="text-3xl font-bold  text-[rgb(251,113,22)] ">
+                        {meal.title}
+                      </h2>
+                    </Link>
+                    <p className="mt-2 text-gray-700">
+                      {meal.description.split(" ").slice(0, 8).join(" ")}
+                      {meal.description.split(" ").length > 8 ? "..." : ""}
+                    </p>
+                  </div>
+                  <div className="my-6">
+                    <img
+                      src={meal.images?.[0]}
+                      className="w-22 h-22 rounded-xl"
+                    ></img>
+                  </div>
+                </div>
 
                 <div className="mt-4 flex space-x-2">
                   <Badge className="bg-blue-100 text-blue-600">

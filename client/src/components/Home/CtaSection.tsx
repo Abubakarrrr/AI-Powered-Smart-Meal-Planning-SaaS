@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Link } from "react-router-dom"
 
 const CtaSection = () => {
   return (
@@ -24,12 +25,14 @@ const CtaSection = () => {
                 placeholder="Enter your email"
                 className="h-12 border-white bg-white/10 text-white placeholder:text-orange-100"
               />
+              <Link to="/subscription">
               <Button className="h-12 bg-white text-[rgb(251,113,22)] hover:bg-orange-50" size="lg">
-                Start Free Trial
+                Start  Trial
               </Button>
+              </Link>
             </div>
 
-            <p className="mt-4 text-sm text-orange-100">No credit card required. 14-day free trial.</p>
+            <p className="mt-4 text-sm text-orange-100">Credit card required.</p>
           </div>
         </div>
       </div>

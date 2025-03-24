@@ -1,28 +1,33 @@
+import profile from "@/assets/profile.png"
+import planai from "@/assets/planai.png"
+import shopping from "@/assets/shopping.png"
+import dashboard from "@/assets/dashboard.png"
+
 const steps = [
     {
       number: "01",
       title: "Create Your Profile",
       description:
         "Tell us about your dietary preferences, restrictions, and nutritional goals to personalize your experience.",
-      image: "/placeholder.svg?height=300&width=400&text=Create+Profile",
+      image: profile,
     },
     {
       number: "02",
       title: "Get AI Recommendations",
       description: "Our AI analyzes your preferences and generates personalized meal plans and recipe suggestions.",
-      image: "/placeholder.svg?height=300&width=400&text=AI+Recommendations",
+      image: planai,
     },
     {
       number: "03",
       title: "Shop with Smart Lists",
       description: "Use our automatically generated grocery lists to shop efficiently for your planned meals.",
-      image: "/placeholder.svg?height=300&width=400&text=Smart+Shopping",
+      image: shopping,
     },
     {
       number: "04",
       title: "Cook and Track",
       description: "Follow easy recipes and track your nutrition intake with our intuitive dashboard.",
-      image: "/placeholder.svg?height=300&width=400&text=Cook+and+Track",
+      image: dashboard,
     },
   ]
   

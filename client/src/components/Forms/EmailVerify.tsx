@@ -33,7 +33,7 @@ export default function EmailVerify() {
         title: "Success",
         description: "Login successfully",
       });
-      navigate("/");
+      navigate("/goals");
     } catch (error) {
       console.error(error);
       toast({

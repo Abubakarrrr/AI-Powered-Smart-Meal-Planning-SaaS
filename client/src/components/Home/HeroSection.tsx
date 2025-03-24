@@ -23,9 +23,9 @@ const HeroSection = () => {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link to="/login">
+              <Link to="/subscription">
               <Button className="bg-[rgb(251,113,22)] hover:bg-[rgb(231,93,2)] text-white" size="lg">
-                Start Free Trial
+                Start Free  Trial
               </Button>
               </Link>
               <Link to="/meals">

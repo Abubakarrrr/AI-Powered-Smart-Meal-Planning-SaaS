@@ -12,5 +12,5 @@ const ForumLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Toaster />
     </div>
   );
-};
+}; 
 export default ForumLayout;
