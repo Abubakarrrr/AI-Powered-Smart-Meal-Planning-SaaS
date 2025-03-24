@@ -69,7 +69,7 @@ export default function Navbar() {
 function Logo() {
   return (
     <a href="/" className="flex items-center space-x-2">
-      <h1 className="text-2xl font-bold text-primary tracking-wide">EatWise</h1>
+      <h1 className="text-2xl font-bold  tracking-wide text-[rgb(251,113,22)]">EatWise</h1>
     </a>
   );
 }

@@ -37,6 +37,7 @@ import { CreatePostForm } from "./components/Forum/CreateNewPost";
 import { PostDetail } from "./components/Forum/PostDetails";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PricingSection from "./pages/Subscription";
+import ImageToRecipe from "./pages/ImageToRecipe";
 
 function App() {
   const { checkAuth, isCheckingAuth, user, onlineUsers } = useAuthStore();
@@ -101,6 +102,7 @@ function App() {
           <Route path="/plan-with-ai" element={<PlanWithAi />} />
           <Route path="/shopping" element={<ShoppingList />} />
           <Route path="/subscription" element={<PricingSection />} />
+          <Route path="/image-to-recipe" element={<ImageToRecipe />} />
           <Route
             path="/forum"
             element={

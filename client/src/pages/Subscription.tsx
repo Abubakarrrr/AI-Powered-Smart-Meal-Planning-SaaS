@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
-import ButtonCustomerPortal from "@/components/payments/ButtonCustomerPortal";
 import { useEffect, useState } from "react";
 const customerPortalLink =
   "https://billing.stripe.com/p/login/test_00gdUxbbUajx78A8ww";
